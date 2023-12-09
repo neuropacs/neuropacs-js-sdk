@@ -3,22 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <script type="module" src="../neuropacs.min.js"></script> -->
-    <script src="../neuropacs.js"></script>
+
+    <script
+      src="https://cdn.socket.io/4.7.2/socket.io.min.js"
+      integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="../src/neuropacs.min.js"></script>
 
     <title>NeuroPACS SDK</title>
   </head>
   <body>
     <h1>NeuroPACS SDK Test</h1>
-
-    <script type="module">
-      import { Neuropacs } from "../neuropacs.js";
+    <script>
+      // import { Neuropacs } from "../src/neuropacs.min.js";
 
       async function main() {
         const apiKey = "m0ig54amrl87awtwlizcuji2bxacjm";
         const serverUrl =
           "http://ec2-3-17-163-24.us-east-2.compute.amazonaws.com:5000";
-        // const serverUrl = "http://localhost:5000";
+        const socketIOPath = "../src/socket.io.min.js";
         const productId = "PD/MSA/PSP-v1.0";
         const format = "XML";
 

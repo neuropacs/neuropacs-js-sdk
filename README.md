@@ -30,12 +30,14 @@ There are several bundles available:
 - Include in project
   - Your project strucutre should look something like this:
 
+```
 project-root/
 |-- src/
 | |-- script.py
 |-- lib/
 | |-- neuropacs.min.js
 | |-- socket.io.min.js
+```
 
 - Reference SDK
 

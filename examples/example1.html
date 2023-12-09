@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <script type="module" src="../neuropacs.min.js"></script> -->
+    <script src="../neuropacs.js"></script>
+
+    <title>NeuroPACS SDK</title>
+  </head>
+  <body>
+    <h1>NeuroPACS SDK Test</h1>
+
+    <script type="module">
+      import { Neuropacs } from "../neuropacs.js";
+
+      async function main() {
+        const apiKey = "m0ig54amrl87awtwlizcuji2bxacjm";
+        const serverUrl =
+          "http://ec2-3-17-163-24.us-east-2.compute.amazonaws.com:5000";
+        // const serverUrl = "http://localhost:5000";
+        const productId = "PD/MSA/PSP-v1.0";
+        const format = "XML";
+
+        try {
+          // INITIALIZE NEUROPACS SDK
+          const npcs = new Neuropacs(apiKey, serverUrl);
+
+          // GENERATE AN AES KEY
+          const aesKey = npcs.generateAesKey();
+          console.log(`AES KEY: ${aesKey}`);
+
+          // CONNECT TO NEUROPACS
+          const connectionID = await npcs.connect(apiKey, aesKey);
+          console.log(`CONNECTION ID: ${connectionID}`);
+
+          // CREATE A NEW JOB
+          const orderID = await npcs.newJob(connectionID, aesKey);
+          console.log(`ORDER ID: ${orderID}`);
+
+          // UPLOAD A FILE/DATASET
+          const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file1 = new File([blobData1], "example1.txt", {
+            type: "text/plain"
+          });
+          const blobData2 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file2 = new File([blobData2], "example2.txt", {
+            type: "text/plain"
+          });
+          const blobData3 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file3 = new File([blobData3], "example3.txt", {
+            type: "text/plain"
+          });
+          const dataset = [file1, file2, file3];
+          const uploadStatus = await npcs.uploadDataset(
+            dataset,
+            orderID,
+            connectionID,
+            aesKey
+          );
+          console.log(uploadStatus);
+
+          //START A JOB
+          const job = await npcs.runJob(
+            productId,
+            orderID,
+            connectionID,
+            aesKey
+          );
+          console.log(`JOB START STATUS: ${job}`);
+
+          // // CHECK STATUS
+          // const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+          // console.log(`JOB STATUS:`);
+          // console.log(status);
+
+          // // GET RESULTS
+          // const results = await npcs.getResults(
+          //   format,
+          //   orderID,
+          //   connectionID,
+          //   aesKey
+          // );
+          // console.log(`RESULTS:`);
+          // console.log(results);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-# NeuroPACS JS SDK
+# NeuroPACS JS SDK v1.0
 
 Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.
 
@@ -74,10 +74,7 @@ Kerrick Cavanaugh - kerrick@neuropacs.com
 
 ## Version History
 
-- 0.2
-  - Various bug fixes and optimizations
-  - See [release history]()
-- 0.1
+- 1.0
   - Initial Release
 
 ## License

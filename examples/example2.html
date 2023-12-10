@@ -4,29 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- SOCKET IO SDK -->
-    <script
-      src="https://cdn.socket.io/4.7.2/socket.io.min.js"
-      integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz"
-      crossorigin="anonymous"
-    ></script>
+    <!-- NeuroPACS SDK -->
+    <script src="path_to_neuropacs.min.js"></script>
 
-    <!-- NEUROPACS SDK -->
-    <script src="neuropacs_cdn_url"></script>
-
-    <title>NeuroPACS SDK Example 1</title>
+    <title>NeuroPACS SDK Example 2</title>
   </head>
   <body>
     <script>
       async function main() {
         const apiKey = "your_api_key";
         const serverUrl = "http://your_neuropacs_url:5000";
+        const socketIOPath = "../src/socket.io.min.js";
         const productId = "PD/MSA/PSP-v1.0";
         const format = "XML";
 
         try {
           // INITIALIZE NEUROPACS SDK
-          const npcs = new Neuropacs(apiKey, serverUrl);
+          const npcs = new Neuropacs(apiKey, serverUrl, socketIOPath);
 
           // GENERATE AN AES KEY
           const aesKey = npcs.generateAesKey();
@@ -71,20 +65,20 @@
           );
           console.log(`JOB START STATUS: ${job}`);
 
-          // // CHECK STATUS
-          // const status = await npcs.checkStatus(orderID, connectionID, aesKey);
-          // console.log(`JOB STATUS:`);
-          // console.log(status);
+          // CHECK STATUS
+          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+          console.log(`JOB STATUS:`);
+          console.log(status);
 
-          // // GET RESULTS
-          // const results = await npcs.getResults(
-          //   format,
-          //   orderID,
-          //   connectionID,
-          //   aesKey
-          // );
-          // console.log(`RESULTS:`);
-          // console.log(results);
+          // GET RESULTS
+          const results = await npcs.getResults(
+            format,
+            orderID,
+            connectionID,
+            aesKey
+          );
+          console.log(`RESULTS:`);
+          console.log(results);
         } catch (e) {
           console.log(e);
         }

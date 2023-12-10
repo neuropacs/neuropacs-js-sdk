@@ -24,15 +24,12 @@
 
           // GENERATE AN AES KEY
           const aesKey = npcs.generateAesKey();
-          console.log(`AES KEY: ${aesKey}`);
 
           // CONNECT TO NEUROPACS
           const connectionID = await npcs.connect(apiKey, aesKey);
-          console.log(`CONNECTION ID: ${connectionID}`);
 
           // CREATE A NEW JOB
           const orderID = await npcs.newJob(connectionID, aesKey);
-          console.log(`ORDER ID: ${orderID}`);
 
           // UPLOAD A FILE/DATASET
           const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
@@ -54,7 +51,6 @@
             connectionID,
             aesKey
           );
-          console.log(uploadStatus);
 
           //START A JOB
           const job = await npcs.runJob(
@@ -63,12 +59,9 @@
             connectionID,
             aesKey
           );
-          console.log(`JOB START STATUS: ${job}`);
 
           // CHECK STATUS
           const status = await npcs.checkStatus(orderID, connectionID, aesKey);
-          console.log(`JOB STATUS:`);
-          console.log(status);
 
           // GET RESULTS
           const results = await npcs.getResults(
@@ -77,8 +70,6 @@
             connectionID,
             aesKey
           );
-          console.log(`RESULTS:`);
-          console.log(results);
         } catch (e) {
           console.log(e);
         }

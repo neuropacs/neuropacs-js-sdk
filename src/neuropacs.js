@@ -10,16 +10,11 @@ class Neuropacs {
    * @param {String} apiKey API key for server
    * @param {String} serverUrl Server URL for an instance
    */
-  constructor(apiKey, serverUrl, socketIOPath) {
+  constructor(apiKey, serverUrl) {
     this.apiKey = apiKey;
     this.serverUrl = serverUrl;
     this.ackRecieved = false;
     this.datasetUpload = false;
-    if (socketIOPath) {
-      this.initSocketIOFromSourceFile(socketIOPath);
-    } else {
-      this.initSocketIO();
-    }
   }
 
   /**
@@ -40,6 +35,7 @@ class Neuropacs {
    */
   disconnectFromSocket() {
     this.socket.close(false);
+    console.log("Disconnected from upload socket.");
   }
 
   /**
@@ -58,7 +54,10 @@ class Neuropacs {
    * @returns {Number} Upload completion status
    */
   async uploadDataset(dataset, orderId, connectionId, aesKey) {
+    await this.initSocketIO();
+
     this.datasetUpload = true;
+
     this.connectToSocket();
 
     const totalFiles = dataset.length;
@@ -147,18 +146,25 @@ class Neuropacs {
     const encryptedOrderID = await this.encryptAesCtr(
       orderID,
       aesKey,
+      "string",
       "string"
     );
 
     let encryptedBinaryData;
 
     if (data instanceof Uint8Array) {
-      encryptedBinaryData = this.encryptAesCtr(data, aesKey, "bytes");
+      encryptedBinaryData = this.encryptAesCtr(
+        data,
+        aesKey,
+        "Uint8Array",
+        "bytes"
+      );
     } else if (data instanceof File) {
       const binaryData = await this.readFileAsArrayBuffer(data);
       encryptedBinaryData = await this.encryptAesCtr(
         new Uint8Array(binaryData),
         aesKey,
+        "Uint8Array",
         "bytes"
       );
     } else {
@@ -182,12 +188,18 @@ class Neuropacs {
 
     const maxAckWaitTime = 10; // 10 seconds
     const startTime = Date.now();
+    let elapsed_time = 0;
 
-    while (
-      !this.ackReceived &&
-      Date.now() - startTime < maxAckWaitTime * 1000
-    ) {
+    // Equivalent to the Python while loop
+    while (!this.ackReceived && elapsed_time < maxAckWaitTime) {
+      elapsed_time = (Date.now() - startTime) / 1000; // Convert to seconds
       await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    // Check if the maximum wait time has been reached
+    if (elapsed_time > maxAckWaitTime) {
+      this.disconnectFromSocket();
+      throw new Error("Upload timeout!");
     }
 
     if (!this.datasetUpload) {
@@ -214,56 +226,66 @@ class Neuropacs {
   /**
    * Initialize SocketIO from source file
    */
-  initSocketIOFromSourceFile(socketIOPath) {
-    this.loadSocketIOCdn(socketIOPath, () => {
-      this.socket = io(this.serverUrl, {
-        autoConnect: false,
-        transports: ["websocket"]
-      });
+  initSocketIOFromCDN(resolve) {
+    this.loadSocketIOCdn(
+      "https://neuropacs.com/js/lib/socket.io.min.js",
+      () => {
+        this.socket = io(this.serverUrl, {
+          autoConnect: false,
+          transports: ["websocket"]
+        });
 
-      this.socket.on("connect", () => {
-        console.log("Connected to upload socket!");
-      });
+        this.socket.on("connect", () => {
+          console.log("Connected to upload socket!");
+        });
 
-      this.socket.on("ack", (data) => {
-        if (data == "0") {
-          this.ackReceived = true;
-        } else {
-          console.log("Upload failed on server side, ending upload process.");
-          this.disconnectFromSocket();
-        }
-      });
+        this.socket.on("ack", (data) => {
+          console.log(`ACK RECV: ${data}`);
+          if (data == "0") {
+            this.ackReceived = true;
+          } else {
+            this.disconnectFromSocket();
+          }
+        });
 
-      this.socket.on("error", (error) => {
-        console.error("Socket.IO error:", error);
-      });
-    });
+        this.socket.on("error", (error) => {
+          console.error("Socket.IO error:", error);
+        });
+        resolve();
+      }
+    );
   }
 
   /**
    * Initialize SocketIO
    */
   initSocketIO() {
-    this.socket = io(this.serverUrl, {
-      autoConnect: false,
-      transports: ["websocket"]
-    });
+    return new Promise(async (resolve) => {
+      try {
+        this.socket = io(this.serverUrl, {
+          autoConnect: false,
+          transports: ["websocket"]
+        });
 
-    this.socket.on("connect", () => {
-      console.log("Connected to upload socket!");
-    });
+        this.socket.on("connect", () => {
+          console.log("Connected to upload socket!");
+        });
 
-    this.socket.on("ack", (data) => {
-      // if (data == "0") {
-      this.ackReceived = true;
-      // } else {
-      //   console.log("Upload failed on server side, ending upload process.");
-      //   this.disconnectFromSocket();
-      // }
-    });
+        this.socket.on("ack", (data) => {
+          if (data == "0") {
+            this.ackReceived = true;
+          } else {
+            this.disconnectFromSocket();
+          }
+        });
 
-    this.socket.on("error", (error) => {
-      console.error("Socket.IO error:", error);
+        this.socket.on("error", (error) => {
+          console.error("Socket.IO error:", error);
+        });
+        resolve();
+      } catch (e) {
+        this.initSocketIOFromCDN(resolve);
+      }
     });
   }
 
@@ -435,7 +457,12 @@ class Neuropacs {
         productID: productId
       };
 
-      const encryptedBody = await this.encryptAesCtr(body, aesKey, "string");
+      const encryptedBody = await this.encryptAesCtr(
+        body,
+        aesKey,
+        "JSON",
+        "string"
+      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -449,6 +476,7 @@ class Neuropacs {
         throw new Error("Job run failed.");
       }
     } catch (error) {
+      console.log(error);
       throw new Error("Failed to run the job.");
     }
   }
@@ -473,7 +501,12 @@ class Neuropacs {
         orderID: orderId
       };
 
-      const encryptedBody = await this.encryptAesCtr(body, aesKey, "string");
+      const encryptedBody = await this.encryptAesCtr(
+        body,
+        aesKey,
+        "JSON",
+        "string"
+      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -523,7 +556,7 @@ class Neuropacs {
         format: format
       };
 
-      const encryptedBody = this.encryptAesCtr(body, aesKey, "string");
+      const encryptedBody = this.encryptAesCtr(body, aesKey, "JSON", "string");
 
       const response = await fetch(url, {
         method: "POST",
@@ -628,23 +661,22 @@ class Neuropacs {
    * @param {String} formatOut format of ciphertext. Defaults to "string".
    * @returns {String} Encrypted ciphertext in requested format_out.
    */
-  async encryptAesCtr(plaintext, aesKey, formatOut) {
+  async encryptAesCtr(plaintext, aesKey, formatIn, formatOut) {
     let plaintextBytes;
 
     try {
-      // Try to convert plaintext to JSON and then encode it
-      //   JSON.parse(plaintext);
-      const plaintextJson = JSON.stringify(plaintext);
-      plaintextBytes = new TextEncoder().encode(plaintextJson);
-    } catch (error) {
-      // If not a valid JSON, treat plaintext as a string or bytes
-      if (typeof plaintext === "string") {
+      if (formatIn == "string" && typeof plaintext === "string") {
         plaintextBytes = new TextEncoder().encode(plaintext);
-      } else if (plaintext instanceof Uint8Array) {
+      } else if (formatIn == "JSON") {
+        const plaintextJson = JSON.stringify(plaintext);
+        plaintextBytes = new TextEncoder().encode(plaintextJson);
+      } else if (formatIn == "Uint8Array" && plaintext instanceof Uint8Array) {
         plaintextBytes = plaintext;
       } else {
         throw new Error("Invalid plaintext format!");
       }
+    } catch (e) {
+      throw new Error("Invalid plaintext format!");
     }
 
     try {

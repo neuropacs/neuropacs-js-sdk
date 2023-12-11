@@ -23,7 +23,7 @@ There are several bundles available:
 
 ### Usage
 
-#### Option 1: Download SDK
+<!-- #### Option 1: Download SDK
 
 - Download prefered bundle for NeuroPACS
 - Download minified bundle for SocketIO (socket.io.min.js)
@@ -47,24 +47,80 @@ project-root/
         const npcs = new Neuropacs(apiKey, serverUrl, socketIOPath);
     }
 </script>
-```
+``` -->
 
-#### Option 2: Inlcude in HTML
+<!-- #### Inlcude in HTML -->
 
 ```
 <head>
-<!-- SOCKET IO SDK -->
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
-
 <!-- NEUROPACS SDK -->
-<script src="INSERT NEUROPACS URL"></script>
+<script src="https://neuropacs.com/js/neuropacs.min.js"></script>
 </head>
+<script>
+      async function main() {
+        const apiKey = "your_api_key";
+        const serverUrl = "http://your_neuropacs_url:5000";
+        const productId = "PD/MSA/PSP-v1.0";
+        const format = "XML";
 
-<script >
-    async function main() {
-        const npcs = new Neuropacs(apiKey, serverUrl, socketIOPath);
-    }
-</script>
+        try {
+          // INITIALIZE NEUROPACS SDK
+          const npcs = new Neuropacs(apiKey, serverUrl);
+
+          // GENERATE AN AES KEY
+          const aesKey = npcs.generateAesKey();
+
+          // CONNECT TO NEUROPACS
+          const connectionID = await npcs.connect(apiKey, aesKey);
+
+          // CREATE A NEW JOB
+          const orderID = await npcs.newJob(connectionID, aesKey);
+
+          // UPLOAD A FILE/DATASET
+          const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file1 = new File([blobData1], "example1.txt", {
+            type: "text/plain"
+          });
+          const blobData2 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file2 = new File([blobData2], "example2.txt", {
+            type: "text/plain"
+          });
+          const blobData3 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file3 = new File([blobData3], "example3.txt", {
+            type: "text/plain"
+          });
+          const dataset = [file1, file2, file3];
+          const uploadStatus = await npcs.uploadDataset(
+            dataset,
+            orderID,
+            connectionID,
+            aesKey
+          );
+
+          //START A JOB
+          const job = await npcs.runJob(
+            productId,
+            orderID,
+            connectionID,
+            aesKey
+          );
+
+          // CHECK STATUS
+          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+
+          // GET RESULTS
+          const results = await npcs.getResults(
+            format,
+            orderID,
+            connectionID,
+            aesKey
+          );
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      main();
+    </script>
 
 ```
 

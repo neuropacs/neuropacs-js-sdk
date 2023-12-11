@@ -2,7 +2,6 @@
 
 Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.
 
-
 ## Getting Started
 
 ### Dependencies

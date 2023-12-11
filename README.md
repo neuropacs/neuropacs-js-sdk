@@ -2,9 +2,6 @@
 
 Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.
 
-<!-- ## Description
-
-An in-depth paragraph about your project and overview of use. -->
 
 ## Getting Started
 

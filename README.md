@@ -50,7 +50,7 @@ project-root/
 ```
 <head>
 <!-- NEUROPACS SDK -->
-<script src="https://neuropacs.com/js/neuropacs.min.js"></script>
+<script src="https://neuropacs.com/js/src/neuropacs.min.js"></script>
 </head>
 <script>
       async function main() {

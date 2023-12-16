@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
 
     <!-- NeuroPACS SDK -->
-    <script src="https://neuropacs.com/js/src/neuropacs.min.js"></script>
+    <script src="https://neuropacs.com/js/src/neuropacs.js"></script>
 
     <title>NeuroPACS SDK Example</title>
   </head>
   <body>
     <script>
       async function main() {
-        const apiKey = "m0ig54amrl87awtwlizcuji2bxacjm";
-        const serverUrl = "http://localhost:5000";
+        const apiKey = "your_api_key";
+        const serverUrl = "http://your_server_url:5000";
         const productId = "PD/MSA/PSP-v1.0";
         const format = "XML";
 
@@ -59,7 +59,7 @@
           );
 
           // CHECK STATUS
-          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+          const status = await npcs.checkStatus("TEST", connectionID, aesKey);
 
           // GET RESULTS
           const results = await npcs.getResults(

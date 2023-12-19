@@ -1,3 +1,5 @@
+[![Unit Tests](https://github.com/neuropacs/neuropacs-js-sdk/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/neuropacs/neuropacs-js-sdk/actions/workflows/ci.yaml)
+
 # NeuroPACS JS SDK v1.0
 
 Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.

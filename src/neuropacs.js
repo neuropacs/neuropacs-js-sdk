@@ -374,6 +374,7 @@ class Neuropacs {
         throw new Error(`Connection failed! Status: ${response.status}`);
       }
     } catch (error) {
+      console.error(error);
       throw new Error("Failed to connect to the server.");
     }
   }
@@ -396,6 +397,7 @@ class Neuropacs {
         );
       }
     } catch (error) {
+      console.error(error);
       throw new Error("Failed to retrieve the public key.");
     }
   }
@@ -428,6 +430,7 @@ class Neuropacs {
         throw new Error(`Job creation returned status ${response.status}.`);
       }
     } catch (error) {
+      console.error(error);
       throw new Error("Failed to create a new job.");
     }
   }

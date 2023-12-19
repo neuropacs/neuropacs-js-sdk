@@ -1,0 +1,39 @@
+{
+  "name": "neuropacs-js-sdk",
+  "version": "1.0.0",
+  "description": "Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest --config package.json"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": [
+      "<rootDir>/tests/setupTests.js"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neuropacs/neuropacs-js-sdk.git"
+  },
+  "author": "Kerrick Cavanaugh - kerrick@neuropacs.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neuropacs/neuropacs-js-sdk/issues"
+  },
+  "homepage": "https://github.com/neuropacs/neuropacs-js-sdk#readme",
+  "devDependencies": {
+    "@trust/webcrypto": "^0.9.2",
+    "cross-fetch": "^4.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^23.0.1",
+    "node-fetch": "^3.3.2",
+    "util": "^0.12.5"
+  }
+}

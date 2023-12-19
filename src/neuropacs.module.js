@@ -413,3 +413,5 @@ class Neuropacs {
     }
   }
 }
+
+module.exports = Neuropacs;

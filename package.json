@@ -12,7 +12,7 @@
     "test": "jest --config package.json"
   },
   "jest": {
-    "testEnvironment": "JSDOM",
+    "testEnvironment": "jsdom",
     "setupFiles": [
       "<rootDir>/tests/setupTests.js"
     ]

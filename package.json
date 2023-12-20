@@ -12,7 +12,7 @@
     "test": "jest --config package.json"
   },
   "jest": {
-    "testEnvironment": "jsdom",
+    "testEnvironment": "JSDOM",
     "setupFiles": [
       "<rootDir>/tests/setupTests.js"
     ]
@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/neuropacs/neuropacs-js-sdk#readme",
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
     "@trust/webcrypto": "^0.9.2",
     "cross-fetch": "^4.0.0",
     "jest": "^29.7.0",
@@ -35,5 +36,8 @@
     "jsdom": "^23.0.1",
     "node-fetch": "^3.3.2",
     "util": "^0.12.5"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security"
   }
 }

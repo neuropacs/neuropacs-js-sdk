@@ -105,6 +105,7 @@ class Neuropacs {
     this.ackReceived = false;
 
     if (!this.datasetUpload) {
+      await this.initSocketIO();
       this.connectToSocket();
     }
 
@@ -153,7 +154,7 @@ class Neuropacs {
     let encryptedBinaryData;
 
     if (data instanceof Uint8Array) {
-      encryptedBinaryData = this.encryptAesCtr(
+      encryptedBinaryData = await this.encryptAesCtr(
         data,
         aesKey,
         "Uint8Array",
@@ -240,7 +241,6 @@ class Neuropacs {
         });
 
         this.socket.on("ack", (data) => {
-          console.log(`ACK RECV: ${data}`);
           if (data == "0") {
             this.ackReceived = true;
           } else {
@@ -422,7 +422,7 @@ class Neuropacs {
 
       if (response.status === 201) {
         const text = await response.text();
-        const decryptedText = this.decryptAesCtr(text, aesKey, "string");
+        const decryptedText = await this.decryptAesCtr(text, aesKey, "string");
         return decryptedText;
       } else {
         throw new Error(`Job creation returned status ${response.status}.`);
@@ -473,7 +473,6 @@ class Neuropacs {
         throw new Error("Job run failed.");
       }
     } catch (error) {
-      console.log(error);
       throw new Error("Failed to run the job.");
     }
   }
@@ -553,7 +552,12 @@ class Neuropacs {
         format: format
       };
 
-      const encryptedBody = this.encryptAesCtr(body, aesKey, "JSON", "string");
+      const encryptedBody = await this.encryptAesCtr(
+        body,
+        aesKey,
+        "JSON",
+        "string"
+      );
 
       const response = await fetch(url, {
         method: "POST",
@@ -563,7 +567,11 @@ class Neuropacs {
 
       if (response.status === 200) {
         const text = await response.text();
-        const decryptedFileData = this.decryptAesCtr(text, aesKey, "string");
+        const decryptedFileData = await this.decryptAesCtr(
+          text,
+          aesKey,
+          "string"
+        );
         return decryptedFileData;
       } else {
         throw new Error("Result retrieval failed!");

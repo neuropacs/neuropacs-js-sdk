@@ -11,28 +11,30 @@
     - success X
     - invalid connection id X
 - upload 
-    - File object success 
-    - Uint8Array success 
+    - File object success X
+    - Uint8Array success X
 - upload dataset 
-    - dataset path success 
+    - dataset Array<File> success X
+    - dataset Array<Uint8Array> success X
 - run job
-    - success
-    - invalid product 
-    - invalid order id 
-    - invalid connection id 
-- check status
-    - success 
-    - invalid order id 
-    - invalid connection id 
+    - success X
+    - invalid product X
+    - invalid order id X
+    - invalid connection id X
+- check status X
+    - success X
+    - invalid order id X
+    - invalid connection id X
 - get results
-    - success 
-        - TXT 
-        - JSON 
-        - XML 
-    - invalid result format 
-    - invalid order id 
-    - invalid connection id
+    - success X
+        - TXT X
+        - JSON X
+        - XML X
+    - invalid result format X
+    - invalid order id X
+    - invalid connection id X
  */
+
 const NeuroPACS = require("../src/neuropacs.module.js");
 
 describe("NeuroPACS Class Tests", () => {
@@ -128,6 +130,405 @@ describe("NeuroPACS Class Tests", () => {
     );
   });
 
-  // Test 7: upload() - SUCCESS (path)
-  // test("should successfully upload a file to the server", async function () {});
+  // Test 7: upload() - SUCCESS (File)
+  test("should successfully upload a File object to the server", async function () {
+    // Create file object
+    const fileContents = fs.readFileSync("tests/test_dataset/testdcm");
+    const blobData1 = new Blob([fileContents], { type: "text/plain" });
+    const file1 = new File([blobData1], "testdcm", {
+      type: "text/plain"
+    });
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // Upload file
+    const upload = await npcs.upload(file1, orderId, connectionId, aesKey);
+
+    // TEST
+    expect(typeof upload).toBe("number");
+    expect(upload).toBe(201);
+  }, 10000);
+
+  // Test 8: upload() - SUCCESS (Uint8Array)
+  test("should successfully upload a Uint8Array to the server", async function () {
+    // Create Uint8Array
+    const fileContents = fs.readFileSync("tests/test_dataset/testdcm");
+    const uint8array = new Uint8Array(fileContents);
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // Upload file
+    const upload = await npcs.upload(uint8array, orderId, connectionId, aesKey);
+
+    // TEST
+    expect(typeof upload).toBe("number");
+    expect(upload).toBe(201);
+  }, 10000);
+
+  // Test 9: uploadDataset() - SUCCESS (File)
+  test("should successfully upload a File object dataset to the server", async function () {
+    // Create file objects
+    const fileContents = fs.readFileSync("tests/test_dataset/testdcm");
+    const file1Contents = fs.readFileSync("tests/test_dataset/testdcm1");
+    const file2Contents = fs.readFileSync("tests/test_dataset/testdcm2");
+    const blobData1 = new Blob([fileContents], { type: "text/plain" });
+    const file1 = new File([blobData1], "testdcm", {
+      type: "text/plain"
+    });
+    const blobData2 = new Blob([file1Contents], { type: "text/plain" });
+    const file2 = new File([blobData2], "testdcm1", {
+      type: "text/plain"
+    });
+    const blobData3 = new Blob([file2Contents], { type: "text/plain" });
+    const file3 = new File([blobData3], "testdcm2", {
+      type: "text/plains"
+    });
+
+    const testDataset = [file1, file2, file3];
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // Upload dataset
+    const upload = await npcs.uploadDataset(
+      testDataset,
+      orderId,
+      connectionId,
+      aesKey
+    );
+
+    // TEST
+    expect(typeof upload).toBe("number");
+    expect(upload).toBe(201);
+  }, 10000);
+
+  // Test 10: upload() - SUCCESS (Uint8Array)
+  test("should successfully upload a Uint8Array dataset to the server", async function () {
+    // Create Uint8Arrays
+    const fileContents = fs.readFileSync("tests/test_dataset/testdcm");
+    const file1Contents = fs.readFileSync("tests/test_dataset/testdcm1");
+    const file2Contents = fs.readFileSync("tests/test_dataset/testdcm2");
+    const uint8array1 = new Uint8Array(fileContents);
+    const uint8array2 = new Uint8Array(file1Contents);
+    const uint8array3 = new Uint8Array(file2Contents);
+
+    const testDataset = [uint8array1, uint8array2, uint8array3];
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // Upload dataset
+    const upload = await npcs.uploadDataset(
+      testDataset,
+      orderId,
+      connectionId,
+      aesKey
+    );
+
+    // TEST
+    expect(typeof upload).toBe("number");
+    expect(upload).toBe(201);
+  }, 10000);
+
+  // Test 11: runJob() - SUCCESS
+  test("should successfully upload a Uint8Array to the server", async function () {
+    const productID = "PD/MSA/PSP-v1.0";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // Run job
+    const job = await npcs.runJob(productID, orderId, connectionId, aesKey);
+
+    // TEST
+    expect(typeof job).toBe("number");
+    expect(job).toBe(202);
+  }, 10000);
+
+  // Test 12: runJob() - INVALID PRODUCT ID
+  test("should fail due to invalid product ID", async function () {
+    const productID = "notARealProduct";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // TEST
+    await expect(
+      npcs.runJob(productID, orderId, connectionId, aesKey)
+    ).rejects.toThrow("Failed to run the job.");
+  }, 10000);
+
+  // Test 13: runJob() - INVALID ORDER ID
+  test("should fail due to invalid order ID", async function () {
+    const productID = "PD/MSA/PSP-v1.0";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = "notARealOrderID";
+
+    // TEST
+    await expect(
+      npcs.runJob(productID, orderId, connectionId, aesKey)
+    ).rejects.toThrow("Failed to run the job.");
+  }, 10000);
+
+  // Test 14: runJob() - INVALID CONNECTION ID
+  test("should fail due to invalid connection ID", async function () {
+    const productID = "PD/MSA/PSP-v1.0";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Create job
+    const orderId = await npcs.newJob(connectionId, aesKey);
+
+    // TEST
+    await expect(
+      npcs.runJob(productID, orderId, "notARealConnectionID", aesKey)
+    ).rejects.toThrow("Failed to run the job.");
+  }, 10000);
+
+  // Test 15: checkStatus() - SUCCESS
+  test("should successfully upload a Uint8Array to the server", async function () {
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Check status
+    const status = await npcs.checkStatus("TEST", connectionId, aesKey);
+
+    // TEST
+    const expectedResult = {
+      started: true,
+      finished: true,
+      failed: false,
+      progress: 100,
+      info: "Finished"
+    };
+    expect(typeof status).toBe("object");
+    expect(JSON.stringify(status)).toBe(JSON.stringify(expectedResult));
+  });
+
+  // Test 16: checkStatus() - INVALID ORDER ID
+  test("should fail due to invalid order id", async function () {
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // TEST
+    await expect(
+      npcs.checkStatus("INVALID", connectionId, aesKey)
+    ).rejects.toThrow("Failed to check status.");
+  });
+
+  // Test 17: checkStatus() - INVALID CONNECTION ID
+  test("should fail due to invalid order id", async function () {
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = "invalidConnectionID";
+
+    // TEST
+    await expect(
+      npcs.checkStatus("TEST", connectionId, aesKey)
+    ).rejects.toThrow("Failed to check status.");
+  });
+
+  // Test 18: getResults() - SUCCESS (TXT)
+  test("should successfully retrieve results in TXT format", async function () {
+    const resultType = "TXT";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Check status
+    const results = await npcs.getResults(
+      resultType,
+      "TEST",
+      connectionId,
+      aesKey
+    );
+
+    // TEST
+    const expectedResult = `Order ID: TEST
+    Date: 2023-12-20
+    Product: TEST
+    PD probability vs. MSA/PSP: 62.6%
+    MSA probability vs. PSP: 85.6%
+    Biomarker levels: pSN=0.26, Putamen=0.19, SCP=0.48, MCP=0.07`;
+    expect(typeof results).toBe("string");
+    expect(results.replace(/\s/g, "")).toBe(expectedResult.replace(/\s/g, ""));
+  });
+
+  // Test 19: getResults() - SUCCESS (JSON)
+  test("should successfully retrieve results in JSON format", async function () {
+    const resultType = "JSON";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Check status
+    const results = await npcs.getResults(
+      resultType,
+      "TEST",
+      connectionId,
+      aesKey
+    );
+
+    // TEST
+    const expectedResult = {
+      orderID: "TEST",
+      date: "2023-12-20",
+      product: "TEST",
+      result: {
+        PDprobability: "62.6",
+        MSAprobability: "85.6",
+        FWpSN: "0.26",
+        FWPutamen: "0.19",
+        FWSCP: "0.48",
+        FWMCP: "0.07"
+      }
+    };
+    expect(typeof results).toBe("string");
+    expect(results.replace(/\s/g, "")).toBe(
+      JSON.stringify(expectedResult).replace(/\s/g, "")
+    );
+  });
+
+  // Test 20: getResults() - SUCCESS (XML)
+  test("should successfully retrieve results in XML format", async function () {
+    const resultType = "XML";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // Check status
+    const results = await npcs.getResults(
+      resultType,
+      "TEST",
+      connectionId,
+      aesKey
+    );
+
+    // TEST
+    const expectedResult = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <neuropacs orderID="TEST" date="2023-12-20" product="TEST">
+      <result name="PDprobability" value="62.6"/>
+      <result name="MSAprobability" value="85.6"/>
+      <data name="FWpSN" value="0.26"/>
+      <data name="FWPutamen" value="0.19"/>
+      <data name="FWSCP" value="0.48"/>
+      <data name="FWMCP" value="0.07"/>
+    </neuropacs>`;
+    expect(typeof results).toBe("string");
+    expect(results.replace(/\s/g, "")).toBe(expectedResult.replace(/\s/g, ""));
+  });
+
+  // Test 21: getResults() - INVALID RESULT FOMAT
+  test("should fail due to invalid result format", async function () {
+    const resultType = "NOTREAL";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // TEST
+    await expect(
+      npcs.getResults(resultType, "TEST", connectionId, aesKey)
+    ).rejects.toThrow("Failed to retrieve results.");
+  });
+
+  // Test 22: getResults() - INVALID ORDER ID
+  test("should fail due to invalid order id", async function () {
+    const resultType = "TXT";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = await npcs.connect(apiKey, aesKey);
+
+    // TEST
+    await expect(
+      npcs.getResults(resultType, "INVALID", connectionId, aesKey)
+    ).rejects.toThrow("Failed to retrieve results.");
+  });
+
+  // Test 23: getResults() - INVALID CONNECTION ID
+  test("should fail due to invalid order id", async function () {
+    const resultType = "TXT";
+
+    // Generate an AES key
+    const aesKey = npcs.generateAesKey();
+
+    // Create connection
+    const connectionId = "notARealConnectionID";
+
+    // TEST
+    await expect(
+      npcs.getResults(resultType, "TEST", connectionId, aesKey)
+    ).rejects.toThrow("Failed to retrieve results.");
+  });
 });

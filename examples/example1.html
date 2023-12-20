@@ -42,7 +42,9 @@
           const file3 = new File([blobData3], "example3.txt", {
             type: "text/plain"
           });
+
           const dataset = [file1, file2, file3];
+
           const uploadStatus = await npcs.uploadDataset(
             dataset,
             orderID,
@@ -59,7 +61,7 @@
           );
 
           // CHECK STATUS
-          const status = await npcs.checkStatus("TEST", connectionID, aesKey);
+          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
 
           // GET RESULTS
           const results = await npcs.getResults(

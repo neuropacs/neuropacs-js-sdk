@@ -404,8 +404,15 @@ describe("NeuroPACS Class Tests", () => {
     );
 
     // TEST
+    const currentDate = new Date();
+    const year = currentDate.getUTCFullYear();
+    const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getUTCDate()).padStart(2, "0");
+
+    const formattedUTCDate = `${year}-${month}-${day}`;
+
     const expectedResult = `Order ID: TEST
-    Date: 2023-12-20
+    Date: ${formattedUTCDate}
     Product: TEST
     PD probability vs. MSA/PSP: 62.6%
     MSA probability vs. PSP: 85.6%
@@ -433,9 +440,16 @@ describe("NeuroPACS Class Tests", () => {
     );
 
     // TEST
+    const currentDate = new Date();
+    const year = currentDate.getUTCFullYear();
+    const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getUTCDate()).padStart(2, "0");
+
+    const formattedUTCDate = `${year}-${month}-${day}`;
+
     const expectedResult = {
       orderID: "TEST",
-      date: "2023-12-20",
+      date: formattedUTCDate,
       product: "TEST",
       result: {
         PDprobability: "62.6",
@@ -471,8 +485,14 @@ describe("NeuroPACS Class Tests", () => {
     );
 
     // TEST
+    const currentDate = new Date();
+    const year = currentDate.getUTCFullYear();
+    const month = String(currentDate.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getUTCDate()).padStart(2, "0");
+
+    const formattedUTCDate = `${year}-${month}-${day}`;
     const expectedResult = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <neuropacs orderID="TEST" date="2023-12-20" product="TEST">
+    <neuropacs orderID="TEST" date="${formattedUTCDate}" product="TEST">
       <result name="PDprobability" value="62.6"/>
       <result name="MSAprobability" value="85.6"/>
       <data name="FWpSN" value="0.26"/>

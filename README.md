@@ -59,20 +59,17 @@ project-root/
         const apiKey = "your_api_key";
         const serverUrl = "http://your_neuropacs_url:5000";
         const productId = "PD/MSA/PSP-v1.0";
-        const format = "XML";
+        const predictionFormat = "XML";
 
         try {
           // INITIALIZE NEUROPACS SDK
-          const npcs = new Neuropacs(apiKey, serverUrl);
-
-          // GENERATE AN AES KEY
-          const aesKey = npcs.generateAesKey();
+          const npcs = Neuropacs.init(apiKey, serverUrl);
 
           // CONNECT TO NEUROPACS
-          const connectionID = await npcs.connect(apiKey, aesKey);
+          const connection = await npcs.connect();
 
           // CREATE A NEW JOB
-          const orderID = await npcs.newJob(connectionID, aesKey);
+          const orderID = await npcs.newJob();
 
           // UPLOAD A FILE/DATASET
           const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
@@ -88,31 +85,20 @@ project-root/
             type: "text/plain"
           });
           const dataset = [file1, file2, file3];
-          const uploadStatus = await npcs.uploadDataset(
-            dataset,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          // --> orderId is optional
+          const uploadStatus = await npcs.uploadDataset(dataset);
 
           //START A JOB
-          const job = await npcs.runJob(
-            productId,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          // --> orderId is optional
+          const job = await npcs.runJob(productId);
 
           // CHECK STATUS
-          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+          // --> orderId is optional
+          const status = await npcs.checkStatus();
 
           // GET RESULTS
-          const results = await npcs.getResults(
-            format,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          // --> orderId is optional
+          const results = await npcs.getResults(predictionFormat);
         } catch (e) {
           console.log(e);
         }

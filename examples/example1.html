@@ -18,16 +18,13 @@
 
         try {
           // INITIALIZE NEUROPACS SDK
-          const npcs = new Neuropacs(apiKey, serverUrl);
-
-          // GENERATE AN AES KEY
-          const aesKey = npcs.generateAesKey();
+          const npcs = Neuropacs.init(serverUrl, apiKey);
 
           // CONNECT TO NEUROPACS
-          const connectionID = await npcs.connect(apiKey, aesKey);
+          await npcs.connect();
 
           // CREATE A NEW JOB
-          const orderID = await npcs.newJob(connectionID, aesKey);
+          await npcs.newJob();
 
           // UPLOAD A FILE/DATASET
           const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
@@ -45,31 +42,16 @@
 
           const dataset = [file1, file2, file3];
 
-          const uploadStatus = await npcs.uploadDataset(
-            dataset,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          const uploadStatus = await npcs.uploadDataset(dataset);
 
-          //START A JOB
-          const job = await npcs.runJob(
-            productId,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          // START A JOB
+          const job = await npcs.runJob(productId);
 
           // CHECK STATUS
-          const status = await npcs.checkStatus(orderID, connectionID, aesKey);
+          const status = await npcs.checkStatus("TEST");
 
           // GET RESULTS
-          const results = await npcs.getResults(
-            format,
-            orderID,
-            connectionID,
-            aesKey
-          );
+          const results = await npcs.getResults(format, "TEST");
         } catch (e) {
           console.log(e);
         }

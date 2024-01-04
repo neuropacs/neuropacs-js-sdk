@@ -485,10 +485,10 @@ class Neuropacs {
           aesKey: this.aesKey
         };
       } else {
-        throw new Error(`Connection failed! Status: ${response.status}`);
+        throw new Error();
       }
     } catch (error) {
-      throw new Error("Failed to connect to the server.");
+      throw new Error("Connection failed!");
     }
   }
 
@@ -517,10 +517,10 @@ class Neuropacs {
         this.orderId = orderId;
         return orderId;
       } else {
-        throw new Error(`Job creation returned status ${response.status}.`);
+        throw new Error();
       }
     } catch (error) {
-      throw new Error("Failed to create a new job.");
+      throw new Error("Job creation failed!");
     }
   }
 
@@ -717,10 +717,10 @@ class Neuropacs {
       if (response.status === 202) {
         return response.status;
       } else {
-        throw new Error("Job run failed.");
+        throw new Error();
       }
     } catch (error) {
-      throw new Error("Failed to run the job.");
+      throw new Error("Job run failed.");
     }
   }
 
@@ -765,10 +765,10 @@ class Neuropacs {
         const json = await this.decryptAesCtr(text, this.aesKey, "JSON");
         return json;
       } else {
-        throw new Error("Status check failed.");
+        throw new Error();
       }
     } catch (error) {
-      throw new Error("Failed to check status.");
+      throw new Error("Status check failed.");
     }
   }
 
@@ -793,11 +793,11 @@ class Neuropacs {
         Client: "api"
       };
 
-      const validFormats = ["TXT", "XML", "JSON", "DICOMSR", "PDF"];
+      const validFormats = ["TXT", "XML", "JSON"];
 
       if (!validFormats.includes(format)) {
         throw new Error(
-          "Invalid format! Valid formats include: 'TXT', 'JSON', 'XML', 'PDF', 'DICOMSR'."
+          `Invalid format! Valid formats include: "TXT", "JSON", "XML".`
         );
       }
 
@@ -828,10 +828,10 @@ class Neuropacs {
         );
         return decryptedFileData;
       } else {
-        throw new Error("Result retrieval failed!");
+        throw new Error();
       }
     } catch (error) {
-      throw new Error("Failed to retrieve results.");
+      throw new Error("Result retrieval failed!");
     }
   }
 }

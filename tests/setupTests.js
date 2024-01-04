@@ -15,3 +15,9 @@ const fs = require("fs");
 global.fs = fs;
 
 // const io = require("../lib/socket.io.min.js");
+
+/**
+ * To update this SDK:
+ * 1) Push changes to repo (main branch)
+ * 2) Navigate to: https://neuropacs.com/js/pull/
+ */

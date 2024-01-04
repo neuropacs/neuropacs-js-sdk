@@ -36,6 +36,32 @@
  */
 
 const NeuroPACS = require("../src/neuropacs.module.js");
+const fs = require("fs");
+
+const logTest = (description, input_data, expected_output, actual_output) => {
+  const filePath = "unittest.log";
+
+  const log_message = `
+Test Description: ${description}
+
+    Input:
+    ${JSON.stringify(input_data)}
+
+    Expected Output:
+    ${JSON.stringify(expected_output)}
+
+    Actual Output:
+    ${JSON.stringify(actual_output)}
+
+----------------------------------------------------------------------
+    `;
+
+  fs.appendFile(filePath, log_message, (err) => {
+    if (err) {
+      console.error("Error writing to file:", err);
+    }
+  });
+};
 
 describe("NeuroPACS Class Tests", () => {
   const serverUrl =
@@ -57,6 +83,12 @@ describe("NeuroPACS Class Tests", () => {
     const publicKeyPEMRegex =
       /-----BEGIN PUBLIC KEY-----(.|\n)*?-----END PUBLIC KEY-----/;
     expect(publicKeyPEMRegex.test(publicKey)).toBe(true);
+    logTest(
+      "Successfully retrieve public key.",
+      null,
+      "Valid PEM formatted base64 encoded public key",
+      publicKey
+    );
   });
 
   // Test 2: connect() - SUCCESS
@@ -74,6 +106,12 @@ describe("NeuroPACS Class Tests", () => {
     expect(typeof aesKey).toBe("string");
     expect(aesKey).toHaveLength(24);
     expect(aesKey).toMatch(/^[A-Za-z0-9+/]{22}==$/);
+    logTest(
+      "Successfully create a connection.",
+      { aesKey: npcs.aesKey, apiKey: npcs.apiKey },
+      "Connection object containing AES key, connection ID, and timestamp",
+      connection
+    );
   });
 
   // Test 2: connect() - INVALID API KEY
@@ -82,8 +120,19 @@ describe("NeuroPACS Class Tests", () => {
     npcs.apiKey = "thisisnotarealapikey12345";
 
     // TEST
-    await expect(npcs.connect()).rejects.toThrow(
-      "Failed to connect to the server."
+    let caughtError;
+    try {
+      await npcs.connect();
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Connection failed!");
+    }
+
+    logTest(
+      "Fail while creating a connection due to invalid API key.",
+      { aesKey: npcs.aesKey, apiKey: npcs.apiKey },
+      "Connection failed!",
+      caughtError
     );
   });
 
@@ -99,6 +148,12 @@ describe("NeuroPACS Class Tests", () => {
     expect(typeof orderId).toBe("string");
     expect(orderId).toHaveLength(20);
     expect(orderId).toMatch(/^[a-zA-Z0-9]+$/);
+    logTest(
+      "Successfully create a new job and return an order ID.",
+      { "connection-id": npcs.connectionId },
+      "Order ID (string, length 20, alphanumeric)",
+      orderId
+    );
   });
 
   // Test 4: new_job() - INVALID CONNECTION ID
@@ -107,7 +162,20 @@ describe("NeuroPACS Class Tests", () => {
     npcs.connectionId = "thisisnotarealconnectionid12345";
 
     // TEST
-    await expect(npcs.newJob()).rejects.toThrow("Failed to create a new job.");
+    let caughtError;
+    try {
+      await npcs.newJob();
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Job creation failed!");
+    }
+
+    logTest(
+      "Fail while creating a new job due to invalid connection ID.",
+      { "connection-id": npcs.connectionId },
+      "Job creation failed!",
+      caughtError
+    );
   });
 
   // Test 5: upload() - SUCCESS (File)
@@ -131,6 +199,12 @@ describe("NeuroPACS Class Tests", () => {
     // TEST
     expect(typeof upload).toBe("number");
     expect(upload).toBe(201);
+    logTest(
+      "Successfully upload a file via File object.",
+      typeof file1,
+      201,
+      upload
+    );
   }, 10000);
 
   // Test 6: upload() - SUCCESS (Uint8Array)
@@ -151,6 +225,12 @@ describe("NeuroPACS Class Tests", () => {
     // TEST
     expect(typeof upload).toBe("number");
     expect(upload).toBe(201);
+    logTest(
+      "Successfully upload a file via byte array (Uint8Array).",
+      typeof uint8array,
+      201,
+      upload
+    );
   }, 10000);
 
   // Test 7: uploadDataset() - SUCCESS (File)
@@ -186,6 +266,12 @@ describe("NeuroPACS Class Tests", () => {
     // TEST
     expect(typeof upload).toBe("number");
     expect(upload).toBe(201);
+    logTest(
+      "Successfully upload a dataset via array of File objects.",
+      typeof testDataset,
+      201,
+      upload
+    );
   }, 10000);
 
   // Test 8: upload() - SUCCESS (Uint8Array)
@@ -212,6 +298,12 @@ describe("NeuroPACS Class Tests", () => {
     // TEST
     expect(typeof upload).toBe("number");
     expect(upload).toBe(201);
+    logTest(
+      "Successfully upload a dataset via Unit8Array.",
+      typeof testDataset,
+      201,
+      upload
+    );
   }, 10000);
 
   // Test 9: runJob() - SUCCESS
@@ -230,6 +322,12 @@ describe("NeuroPACS Class Tests", () => {
     // TEST
     expect(typeof job).toBe("number");
     expect(job).toBe(202);
+    logTest(
+      "Successfully run a job and return a status 202.",
+      { orderID: npcs.orderId, productID: productID },
+      202,
+      job
+    );
   });
 
   // Test 10: runJob() - INVALID PRODUCT ID
@@ -243,8 +341,23 @@ describe("NeuroPACS Class Tests", () => {
     await npcs.newJob();
 
     // TEST
-    await expect(npcs.runJob(productID)).rejects.toThrow(
-      "Failed to run the job."
+    let caughtError;
+    try {
+      await npcs.runJob(productID);
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Job run failed.");
+    }
+
+    logTest(
+      "Fail running a job due to invalid product ID.",
+      {
+        "connection-id": npcs.connectionId,
+        orderID: npcs.orderId,
+        productID: productID
+      },
+      "Job run failed.",
+      caughtError
     );
   });
 
@@ -259,8 +372,23 @@ describe("NeuroPACS Class Tests", () => {
     npcs.orderId = "notARealOrderID";
 
     // TEST
-    await expect(npcs.runJob(productID)).rejects.toThrow(
-      "Failed to run the job."
+    let caughtError;
+    try {
+      await npcs.runJob(productID);
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Job run failed.");
+    }
+
+    logTest(
+      "Fail running a job due to invalid order ID.",
+      {
+        "connection-id": npcs.connectionId,
+        orderID: "notARealOrderID",
+        productID: productID
+      },
+      "Job run failed.",
+      caughtError
     );
   });
 
@@ -278,8 +406,22 @@ describe("NeuroPACS Class Tests", () => {
     npcs.connectionId = "notARealConnectionID";
 
     // TEST
-    await expect(npcs.runJob(productID)).rejects.toThrow(
-      "Failed to run the job."
+    let caughtError;
+    try {
+      await npcs.runJob(productID);
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Job run failed.");
+    }
+    logTest(
+      "Fail running a job due to invalid connection ID.",
+      {
+        "connection-id": npcs.connectionId,
+        orderID: npcs.orderId,
+        productID: productID
+      },
+      "Job run failed.",
+      caughtError
     );
   });
 
@@ -301,6 +443,12 @@ describe("NeuroPACS Class Tests", () => {
     };
     expect(typeof status).toBe("object");
     expect(JSON.stringify(status)).toBe(JSON.stringify(expectedResult));
+    logTest(
+      "Successfully check status of job.",
+      { "connection-id": npcs.connectionId, orderID: "TEST" },
+      expectedResult,
+      status
+    );
   });
 
   // Test 14: checkStatus() - INVALID ORDER ID
@@ -309,8 +457,18 @@ describe("NeuroPACS Class Tests", () => {
     await npcs.connect();
 
     // TEST
-    await expect(npcs.checkStatus("INVALID")).rejects.toThrow(
-      "Failed to check status."
+    let caughtError;
+    try {
+      await npcs.checkStatus("INVALID");
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Status check failed.");
+    }
+    logTest(
+      "Fail checking job status due to invalid order ID.",
+      { "connection-id": npcs.connectionId, orderID: "invalidOrderID" },
+      "Status check failed.",
+      caughtError
     );
   });
 
@@ -323,8 +481,18 @@ describe("NeuroPACS Class Tests", () => {
     npcs.connectionId = "invalidConnectionID";
 
     // TEST
-    await expect(npcs.checkStatus("TEST")).rejects.toThrow(
-      "Failed to check status."
+    let caughtError;
+    try {
+      await npcs.checkStatus("TEST");
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Status check failed.");
+    }
+    logTest(
+      "Fail checking job status due to invalid connection ID.",
+      { "connection-id": "noARealConnectionID", orderID: "TEST" },
+      "Status check failed.",
+      caughtError
     );
   });
 
@@ -347,13 +515,19 @@ describe("NeuroPACS Class Tests", () => {
     const formattedUTCDate = `${year}-${month}-${day}`;
 
     const expectedResult = `Order ID: TEST
-    Date: ${formattedUTCDate}
-    Product: TEST
-    PD probability vs. MSA/PSP: 62.6%
-    MSA probability vs. PSP: 85.6%
-    Biomarker levels: pSN=0.26, Putamen=0.19, SCP=0.48, MCP=0.07`;
+      Date: ${formattedUTCDate}
+      Product: TEST
+      PD probability vs. MSA/PSP: 62.6%
+      MSA probability vs. PSP: 85.6%
+      Biomarker levels: pSN=0.26, Putamen=0.19, SCP=0.48, MCP=0.07`;
     expect(typeof results).toBe("string");
     expect(results.replace(/\s/g, "")).toBe(expectedResult.replace(/\s/g, ""));
+    logTest(
+      "Successfully retrieve job results in TXT format.",
+      { "connection-id": npcs.connectionId, orderID: "TEST", format: "TXT" },
+      expectedResult.replace(/\s/g, ""),
+      results.replace(/\s/g, "")
+    );
   });
 
   // Test 17: getResults() - SUCCESS (JSON)
@@ -391,6 +565,12 @@ describe("NeuroPACS Class Tests", () => {
     expect(results.replace(/\s/g, "")).toBe(
       JSON.stringify(expectedResult).replace(/\s/g, "")
     );
+    logTest(
+      "Successfully retrieve job results in JSON format.",
+      { "connection-id": npcs.connectionId, orderID: "TEST", format: "JSON" },
+      JSON.stringify(expectedResult).replace(/\s/g, ""),
+      results.replace(/\s/g, "")
+    );
   });
 
   // Test 18: getResults() - SUCCESS (XML)
@@ -411,16 +591,22 @@ describe("NeuroPACS Class Tests", () => {
 
     const formattedUTCDate = `${year}-${month}-${day}`;
     const expectedResult = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <neuropacs orderID="TEST" date="${formattedUTCDate}" product="TEST">
-      <result name="PDprobability" value="62.6"/>
-      <result name="MSAprobability" value="85.6"/>
-      <data name="FWpSN" value="0.26"/>
-      <data name="FWPutamen" value="0.19"/>
-      <data name="FWSCP" value="0.48"/>
-      <data name="FWMCP" value="0.07"/>
-    </neuropacs>`;
+      <neuropacs orderID="TEST" date="${formattedUTCDate}" product="TEST">
+        <result name="PDprobability" value="62.6"/>
+        <result name="MSAprobability" value="85.6"/>
+        <data name="FWpSN" value="0.26"/>
+        <data name="FWPutamen" value="0.19"/>
+        <data name="FWSCP" value="0.48"/>
+        <data name="FWMCP" value="0.07"/>
+      </neuropacs>`;
     expect(typeof results).toBe("string");
     expect(results.replace(/\s/g, "")).toBe(expectedResult.replace(/\s/g, ""));
+    logTest(
+      "Successfully retrieve job results in XML format.",
+      { "connection-id": npcs.connectionId, orderID: "TEST", format: "XML" },
+      expectedResult.replace(/\s/g, ""),
+      results.replace(/\s/g, "")
+    );
   });
 
   // Test 19: getResults() - INVALID RESULT FOMAT
@@ -434,9 +620,23 @@ describe("NeuroPACS Class Tests", () => {
     const connectionId = await npcs.connect(apiKey, aesKey);
 
     // TEST
-    await expect(
-      npcs.getResults(resultType, "TEST", connectionId, aesKey)
-    ).rejects.toThrow("Failed to retrieve results.");
+    let caughtError;
+    try {
+      await npcs.getResults(resultType, "TEST", connectionId, aesKey);
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Result retrieval failed!");
+    }
+    logTest(
+      "Fail to check job status due to invalid result format.",
+      {
+        "connection-id": npcs.connectionId,
+        orderID: "TEST",
+        format: "noARealFormat"
+      },
+      "Result retrieval failed!",
+      caughtError
+    );
   });
 
   // Test 10: getResults() - INVALID ORDER ID
@@ -447,8 +647,23 @@ describe("NeuroPACS Class Tests", () => {
     await npcs.connect();
 
     // TEST
-    await expect(npcs.getResults(resultType, "INVALID")).rejects.toThrow(
-      "Failed to retrieve results."
+    let caughtError;
+    try {
+      await npcs.getResults(resultType, "INVALID");
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Result retrieval failed!");
+    }
+
+    logTest(
+      "Fail to check job status due to invalid order ID.",
+      {
+        "connection-id": self.npcs.connection_id,
+        orderID: "noARealOrderID",
+        format: "TXT"
+      },
+      "Result retrieval failed!",
+      caughtError
     );
   });
 
@@ -463,8 +678,23 @@ describe("NeuroPACS Class Tests", () => {
     npcs.connectionId = "notARealConnectionID";
 
     // TEST
-    await expect(npcs.getResults(resultType, "TEST")).rejects.toThrow(
-      "Failed to retrieve results."
+    let caughtError;
+    try {
+      await npcs.getResults(resultType, "TEST");
+    } catch (error) {
+      caughtError = error.message;
+      expect(error.message).toBe("Result retrieval failed!");
+    }
+
+    logTest(
+      "Fail to check job status due to invalid connection ID.",
+      {
+        "connection-id": npcs.connectionId,
+        orderID: "TEST",
+        format: "TXT"
+      },
+      "Result retrieval failed!",
+      caughtError
     );
   });
 });

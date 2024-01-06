@@ -40,6 +40,9 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { performance } = require("perf_hooks");
 
+//SET THIS TO FALSE BEFORE PUSHING TO GITHUB
+testEnv = false;
+
 let testLogPath = "";
 
 const testResults = {};
@@ -48,56 +51,64 @@ let startTime,
   endTime = 0;
 
 const logTest = (description, input_data, expected_output, actual_output) => {
-  const log_message = `
-Test Description: ${description}
-
-    Input:
-    ${JSON.stringify(input_data)}
-
-    Expected Output:
-    ${JSON.stringify(expected_output)}
-
-    Actual Output:
-    ${JSON.stringify(actual_output)}
-
-----------------------------------------------------------------------`;
-  fs.appendFileSync(testLogPath, log_message);
+  if (testEnv) {
+    const log_message = `
+    Test Description: ${description}
+    
+        Input:
+        ${JSON.stringify(input_data)}
+    
+        Expected Output:
+        ${JSON.stringify(expected_output)}
+    
+        Actual Output:
+        ${JSON.stringify(actual_output)}
+    
+    ----------------------------------------------------------------------`;
+    if (testEnv) {
+      fs.appendFileSync(testLogPath, log_message);
+    }
+  }
 };
 
 const logResult = (test, status, failDesc) => {
-  testResults[test] = status;
-  let statusMessage = `
-Test result: ${status}`;
-  if (failDesc) {
-    statusMessage += `
-\nDescrption: ${failDesc}`;
-  } else {
-    statusMessage += "\n\n";
+  if (testEnv) {
+    testResults[test] = status;
+    let statusMessage = `
+  Test result: ${status}`;
+    if (failDesc) {
+      statusMessage += `
+  \nDescrption: ${failDesc}`;
+    } else {
+      statusMessage += "\n\n";
+    }
+    fs.appendFileSync(testLogPath, statusMessage);
   }
-  fs.appendFileSync(testLogPath, statusMessage);
 };
 
 const logResults = () => {
-  totalTests = 0;
-  passedTests = 0;
+  if (testEnv) {
+    totalTests = 0;
+    passedTests = 0;
 
-  for (const test in testResults) {
-    let resultStr;
-    if (testResults[test] == "PASS") {
-      resultStr = `O - ${test}\n`;
-      passedTests++;
-      totalTests++;
-    } else if (testResults[test] == "FAIL") {
-      resultStr = `X - ${test}\n`;
-      totalTests++;
+    for (const test in testResults) {
+      let resultStr;
+      if (testResults[test] == "PASS") {
+        resultStr = `O - ${test}\n`;
+        passedTests++;
+        totalTests++;
+      } else if (testResults[test] == "FAIL") {
+        resultStr = `X - ${test}\n`;
+        totalTests++;
+      }
+      fs.appendFileSync(testLogPath, resultStr);
     }
-    fs.appendFileSync(testLogPath, resultStr);
+    const testScoreStr = `
+  Test Suites: ${1} passed, ${1} total
+  Tests: ${passedTests} passed, ${totalTests} total
+  Ran all test suites in ${(endTime - startTime) / 1000}s.`;
+    fs.appendFileSync(testLogPath, testScoreStr);
   }
-  const testScoreStr = `
-Test Suites: ${1} passed, ${1} total
-Tests: ${passedTests} passed, ${totalTests} total
-Ran all test suites in ${(endTime - startTime) / 1000}s.`;
-  fs.appendFileSync(testLogPath, testScoreStr);
 };
 
 /**
@@ -125,29 +136,33 @@ describe("NeuroPACS Class Tests", () => {
   });
 
   beforeAll(() => {
-    startTime = performance.now();
-    const currentDate = new Date();
-    const utcString = currentDate.toISOString();
-    const year = utcString.slice(2, 4); // Extract the last two digits of the year
-    const month = utcString.slice(5, 7);
-    const day = utcString.slice(8, 10);
-    const hour = utcString.slice(11, 13);
-    const minute = utcString.slice(14, 16);
-    const second = utcString.slice(17, 19);
-    const formattedUTCString = `${month}-${day}-${year}T${hour}-${minute}-${second}`;
-    const filePath = `./tests/test_logs/unittest-${formattedUTCString}.log`;
-    testLogPath = filePath;
+    if (testEnv) {
+      startTime = performance.now();
+      const currentDate = new Date();
+      const utcString = currentDate.toISOString();
+      const year = utcString.slice(2, 4); // Extract the last two digits of the year
+      const month = utcString.slice(5, 7);
+      const day = utcString.slice(8, 10);
+      const hour = utcString.slice(11, 13);
+      const minute = utcString.slice(14, 16);
+      const second = utcString.slice(17, 19);
+      const formattedUTCString = `${month}-${day}-${year}T${hour}-${minute}-${second}`;
+      const filePath = `./tests/test_logs/unittest-${formattedUTCString}.log`;
+      testLogPath = filePath;
 
-    const titleMessage = `JavaScript SDK Unit Tests
-Test run date: ${formattedUTCString}
-`;
+      const titleMessage = `JavaScript SDK Unit Tests
+  Test run date: ${formattedUTCString}
+  `;
 
-    fs.appendFileSync(testLogPath, titleMessage);
+      fs.appendFileSync(testLogPath, titleMessage);
+    }
   });
 
   afterAll(() => {
-    endTime = performance.now();
-    logResults();
+    if (testEnv) {
+      endTime = performance.now();
+      logResults();
+    }
   });
 
   // Test 1: get_public_key() - SUCCESS

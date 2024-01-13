@@ -835,3 +835,5 @@ class Neuropacs {
     }
   }
 }
+
+window.Neuropacs = Neuropacs;

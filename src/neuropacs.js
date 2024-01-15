@@ -497,9 +497,9 @@ class Neuropacs {
 
    * @returns {String} Base64 string orderID.
    */
-  async newJob() {
+  async newJob(serverUrl = this.serverUrl, aesKey = this.aesKey) {
     try {
-      const url = `${this.serverUrl}/newJob/`;
+      const url = `${serverUrl}/newJob/`;
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
@@ -513,7 +513,7 @@ class Neuropacs {
 
       if (response.status === 201) {
         const text = await response.text();
-        const orderId = await this.decryptAesCtr(text, this.aesKey, "string");
+        const orderId = await this.decryptAesCtr(text, aesKey, "string");
         this.orderId = orderId;
         return orderId;
       } else {

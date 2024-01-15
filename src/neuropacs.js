@@ -524,6 +524,7 @@ class Neuropacs {
         throw new Error();
       }
     } catch (error) {
+      console.log(error);
       throw new Error("Job creation failed!");
     }
   }

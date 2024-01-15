@@ -497,16 +497,12 @@ class Neuropacs {
 
    * @returns {String} Base64 string orderID.
    */
-  async newJob(
-    serverUrl = this.serverUrl,
-    connectionId = this.connectionId,
-    aesKey = this.aesKey
-  ) {
+  async newJob() {
     try {
-      const url = `${serverUrl}/newJob/`;
+      const url = `${this.serverUrl}/newJob/`;
       const headers = {
         "Content-Type": "text/plain",
-        "Connection-Id": connectionId,
+        "Connection-Id": this.connectionId,
         Client: "API"
       };
 
@@ -517,14 +513,13 @@ class Neuropacs {
 
       if (response.status === 201) {
         const text = await response.text();
-        const orderId = await this.decryptAesCtr(text, aesKey, "string");
+        const orderId = await this.decryptAesCtr(text, this.aesKey, "string");
         this.orderId = orderId;
         return orderId;
       } else {
         throw new Error();
       }
     } catch (error) {
-      console.log(error);
       throw new Error("Job creation failed!");
     }
   }

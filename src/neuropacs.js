@@ -497,12 +497,16 @@ class Neuropacs {
 
    * @returns {String} Base64 string orderID.
    */
-  async newJob(serverUrl = this.serverUrl, aesKey = this.aesKey) {
+  async newJob(
+    serverUrl = this.serverUrl,
+    connectionId = this.connectionId,
+    aesKey = this.aesKey
+  ) {
     try {
       const url = `${serverUrl}/newJob/`;
       const headers = {
         "Content-Type": "text/plain",
-        "Connection-Id": this.connectionId,
+        "Connection-Id": connectionId,
         Client: "API"
       };
 

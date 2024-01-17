@@ -564,6 +564,7 @@ class Neuropacs {
    * @returns {Number} Upload status code.
    */
   async upload(data, orderId = null) {
+    console.log("UPLOAD STARTED");
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -574,6 +575,8 @@ class Neuropacs {
       await this.initSocketIO();
       this.connectToSocket();
     }
+
+    console.log("SOCKET STUFF INITED");
 
     let filename = "";
 

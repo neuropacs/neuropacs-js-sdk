@@ -485,9 +485,11 @@ class Neuropacs {
           aesKey: this.aesKey
         };
       } else {
+        console.log(response);
         throw new Error();
       }
     } catch (error) {
+      console.log(error);
       throw new Error("Connection failed!");
     }
   }
@@ -564,7 +566,6 @@ class Neuropacs {
    * @returns {Number} Upload status code.
    */
   async upload(data, orderId = null) {
-    console.log("UPLOAD STARTED");
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -575,8 +576,6 @@ class Neuropacs {
       await this.initSocketIO();
       this.connectToSocket();
     }
-
-    console.log("SOCKET STUFF INITED");
 
     let filename = "";
 
@@ -653,6 +652,8 @@ class Neuropacs {
       client: "API",
       "order-id": encryptedOrderId
     };
+
+    console.log(headers);
 
     this.socket.emit("file_data", { data: message, headers: headers });
 

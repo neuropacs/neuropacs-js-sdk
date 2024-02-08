@@ -50,10 +50,11 @@ class Neuropacs {
      * Initialize SocketIO from source file
      */
     this.initSocketIOFromCDN = (resolve) => {
+      const socketUrl = this.serverUrl.replace("api", "");
       this.loadSocketIOCdn(
         "https://neuropacs.com/js/lib/socket.io.min.js",
         () => {
-          this.socket = io(this.serverUrl, {
+          this.socket = io(socketUrl, {
             autoConnect: false,
             transports: ["websocket"]
           });

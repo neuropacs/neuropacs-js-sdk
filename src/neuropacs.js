@@ -564,10 +564,11 @@ class Neuropacs {
    * Upload a file to the socket
    * @param {Uint8Array/File} data Data to be uploaded
    * @param {String} orderId Base64 orderId (optional)
+   * @param {String} datasetId Base64 datasetId (optional)
    *
    * @returns {Number} Upload status code.
    */
-  async upload(data, orderId = null) {
+  async upload(data, orderId = null, datasetId = null) {
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -648,12 +649,21 @@ class Neuropacs {
       ...new TextEncoder().encode(END)
     ]);
 
-    const headers = {
-      "Content-Type": "application/octet-stream",
-      "connection-id": this.connectionId,
-      client: "API",
-      "order-id": encryptedOrderId
-    };
+    let headers = {};
+    datasetId
+      ? (headers = {
+          "Content-Type": "application/octet-stream",
+          "connection-id": this.connectionId,
+          "dataset-id": datasetId,
+          client: "API",
+          "order-id": encryptedOrderId
+        })
+      : (headers = {
+          "Content-Type": "application/octet-stream",
+          "connection-id": this.connectionId,
+          client: "API",
+          "order-id": encryptedOrderId
+        });
 
     console.log(headers);
 

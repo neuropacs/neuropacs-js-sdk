@@ -696,10 +696,10 @@ class Neuropacs {
    * Run a job
    * @param {String} productId Product to be executed
    * @param {String} orderId Base64 order Id (optional)
-   *
+   * @param {String} datasetId Base64 dataset Id (optional)
    * @returns {Number} Job run status code
    */
-  async runJob(productId, orderId = null) {
+  async runJob(productId, orderId = null, datasetId = null) {
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -714,7 +714,8 @@ class Neuropacs {
 
       const body = {
         orderID: orderId,
-        productID: productId
+        productID: productId,
+        datasetID: datasetId
       };
 
       const encryptedBody = await this.encryptAesCtr(

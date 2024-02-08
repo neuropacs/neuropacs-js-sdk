@@ -18,7 +18,8 @@ class Neuropacs {
     this.initSocketIO = () => {
       return new Promise(async (resolve) => {
         try {
-          this.socket = io(this.serverUrl, {
+          const socketUrl = this.serverUrl.replace("api", "");
+          this.socket = io(socketUrl, {
             autoConnect: false,
             transports: ["websocket"]
           });

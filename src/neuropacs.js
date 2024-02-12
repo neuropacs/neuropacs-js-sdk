@@ -50,7 +50,7 @@ class Neuropacs {
      * Initialize SocketIO from source file
      */
     this.initSocketIOFromCDN = (resolve) => {
-      const socketUrl = this.serverUrl.replace("api", "");
+      // const socketUrl = this.serverUrl.replace("api", "");
       this.loadSocketIOCdn(
         "https://neuropacs.com/js/lib/socket.io.min.js",
         () => {
@@ -227,7 +227,7 @@ class Neuropacs {
      */
     this.getPublicKey = async () => {
       try {
-        const response = await fetch(`${this.serverUrl}/getPubKey/`);
+        const response = await fetch(`${this.serverUrl}/api/getPubKey/`);
 
         if (response.ok) {
           const json = await response.json();
@@ -471,7 +471,7 @@ class Neuropacs {
     try {
       const encryptedBody = await this.oaepEncrypt(body);
 
-      const response = await fetch(`${this.serverUrl}/connect/`, {
+      const response = await fetch(`${this.serverUrl}/api/connect/`, {
         method: "POST",
         headers: headers,
         body: encryptedBody
@@ -503,7 +503,7 @@ class Neuropacs {
    */
   async newJob() {
     try {
-      const url = `${this.serverUrl}/newJob/`;
+      const url = `${this.serverUrl}/api/newJob/`;
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
@@ -705,7 +705,7 @@ class Neuropacs {
     }
 
     try {
-      const url = `${this.serverUrl}/runJob/`;
+      const url = `${this.serverUrl}/api/runJob/`;
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
@@ -753,7 +753,7 @@ class Neuropacs {
     }
 
     try {
-      const url = `${this.serverUrl}/checkStatus/`;
+      const url = `${this.serverUrl}/api/checkStatus/`;
       const headers = {
         "Content-Type": "text/plain",
         "connection-id": this.connectionId,
@@ -803,7 +803,7 @@ class Neuropacs {
     }
 
     try {
-      const url = `${this.serverUrl}/getResults/`;
+      const url = `${this.serverUrl}/api/getResults/`;
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,

@@ -846,6 +846,7 @@ class Neuropacs {
         throw new Error();
       }
     } catch (error) {
+      console.log(error);
       throw new Error("Result retrieval failed!");
     }
   }

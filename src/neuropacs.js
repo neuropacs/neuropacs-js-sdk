@@ -843,6 +843,14 @@ class Neuropacs {
         );
         return decryptedFileData;
       } else {
+        const text = await response.text();
+        console.log(text);
+        const decryptedFileData = await this.decryptAesCtr(
+          text,
+          this.aesKey,
+          "string"
+        );
+        console.log(decryptedFileData);
         throw new Error();
       }
     } catch (error) {

@@ -808,11 +808,11 @@ class Neuropacs {
         Client: "api"
       };
 
-      const validFormats = ["TXT", "XML", "JSON"];
+      const validFormats = ["TXT", "XML", "JSON", "DCM", "PDF"];
 
       if (!validFormats.includes(format)) {
         throw new Error(
-          `Invalid format! Valid formats include: "TXT", "JSON", "XML".`
+          `Invalid format! Valid formats include: "TXT", "JSON", "XML", "PDF", "DCM.`
         );
       }
 

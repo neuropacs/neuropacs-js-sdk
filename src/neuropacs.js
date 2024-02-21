@@ -835,16 +835,20 @@ class Neuropacs {
       });
 
       if (response.status === 200) {
-        const text = await response.text();
+        // const text = await response.text();
+        const arrayBuffer = await response.arrayBuffer();
+        const byteData = Buffer.from(arrayBuffer);
+        console.log(byteData);
+
         const decryptedFileData = await this.decryptAesCtr(
-          text,
+          byteData,
           this.aesKey,
           "string"
         );
         return decryptedFileData;
       } else {
         const text = await response.text();
-        console.log(text);
+
         const decryptedFileData = await this.decryptAesCtr(
           text,
           this.aesKey,

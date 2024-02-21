@@ -227,17 +227,19 @@ class Neuropacs {
       try {
         const response = await fetch(`${this.serverUrl}/api/getPubKey/`);
 
-        if (response.ok) {
-          const json = await response.json();
-          const pubKey = json.pub_key;
-          return pubKey;
-        } else {
-          throw new Error(
-            `Public key retrieval failed! Status: ${response.status}`
-          );
+        if (!response.ok) {
+          throw new Error(`HTTP error. Status ${response.status}.`);
         }
+
+        const json = await response.json();
+        const pubKey = json.pub_key;
+        return pubKey;
       } catch (error) {
-        throw new Error("Failed to retrieve the public key.");
+        if (error) {
+          throw new Error(error);
+        } else {
+          throw new Error("Failed to retrieve the public key.");
+        }
       }
     };
 
@@ -290,7 +292,11 @@ class Neuropacs {
           throw new Error("Invalid plaintext format!");
         }
       } catch (e) {
-        throw new Error("Invalid plaintext format!");
+        if (error) {
+          throw new Error(error);
+        } else {
+          throw new Error("Plaintext decoding failed!");
+        }
       }
 
       try {
@@ -339,7 +345,11 @@ class Neuropacs {
           return encryptedData;
         }
       } catch (error) {
-        throw new Error("AES encryption failed!");
+        if (error) {
+          throw new Error(error);
+        } else {
+          throw new Error("AES encryption failed!");
+        }
       }
     };
 
@@ -407,7 +417,11 @@ class Neuropacs {
           return decryptedText;
         }
       } catch (error) {
-        throw new Error("AES decryption failed!");
+        if (error) {
+          throw new Error(error);
+        } else {
+          throw new Error("AES decryption failed!");
+        }
       }
     };
 
@@ -475,22 +489,24 @@ class Neuropacs {
         body: encryptedBody
       });
 
-      if (response.ok) {
-        const json = await response.json();
-        const connectionId = json.connectionID;
-        this.connectionId = connectionId;
-        return {
-          timestamp: this.getTimeDateString(),
-          connectionId: connectionId,
-          aesKey: this.aesKey
-        };
-      } else {
-        console.log(response);
-        throw new Error();
+      if (!response.ok) {
+        throw new Error(`HTTP error. Status ${response.status}.`);
       }
+
+      const json = await response.json();
+      const connectionId = json.connectionID;
+      this.connectionId = connectionId;
+      return {
+        timestamp: this.getTimeDateString(),
+        connectionId: connectionId,
+        aesKey: this.aesKey
+      };
     } catch (error) {
-      console.log(error);
-      throw new Error("Connection failed!");
+      if (error) {
+        throw new Error(error);
+      } else {
+        throw new Error("Connection failed!");
+      }
     }
   }
 
@@ -513,16 +529,20 @@ class Neuropacs {
         headers: headers
       });
 
-      if (response.status === 201) {
-        const text = await response.text();
-        const orderId = await this.decryptAesCtr(text, this.aesKey, "string");
-        this.orderId = orderId;
-        return orderId;
-      } else {
-        throw new Error();
+      if (!response.ok) {
+        throw new Error(`HTTP error. Status ${response.status}.`);
       }
+
+      const text = await response.text();
+      const orderId = await this.decryptAesCtr(text, this.aesKey, "string");
+      this.orderId = orderId;
+      return orderId;
     } catch (error) {
-      throw new Error("Job creation failed!");
+      if (error) {
+        throw new Error(error);
+      } else {
+        throw new Error("Job creation failed!");
+      }
     }
   }
 
@@ -535,27 +555,35 @@ class Neuropacs {
    * @returns {Number} Upload completion status
    */
   async uploadDataset(dataset, orderId = null) {
-    if (orderId == null) {
-      orderId = this.orderID;
+    try {
+      if (orderId == null) {
+        orderId = this.orderID;
+      }
+
+      await this.initSocketIO();
+
+      this.datasetUpload = true;
+
+      this.connectToSocket();
+
+      const totalFiles = dataset.length;
+
+      for (let i = 0; i < totalFiles; i++) {
+        const curData = dataset[i];
+        await this.upload(curData, orderId);
+        this.printProgressBar(i + 1, totalFiles);
+      }
+
+      this.disconnectFromSocket();
+
+      return 201;
+    } catch (e) {
+      if (error) {
+        throw new Error(error);
+      } else {
+        throw new Error("Dataset upload failed!");
+      }
     }
-
-    await this.initSocketIO();
-
-    this.datasetUpload = true;
-
-    this.connectToSocket();
-
-    const totalFiles = dataset.length;
-
-    for (let i = 0; i < totalFiles; i++) {
-      const curData = dataset[i];
-      await this.upload(curData, orderId);
-      this.printProgressBar(i + 1, totalFiles);
-    }
-
-    this.disconnectFromSocket();
-
-    return 201;
   }
 
   /**
@@ -663,8 +691,6 @@ class Neuropacs {
           "order-id": encryptedOrderId
         });
 
-    console.log(headers);
-
     this.socket.emit("file_data", { data: message, headers: headers });
 
     const maxAckWaitTime = 10; // 10 seconds
@@ -729,13 +755,17 @@ class Neuropacs {
         body: encryptedBody
       });
 
-      if (response.status === 202) {
-        return response.status;
-      } else {
-        throw new Error();
+      if (!response.ok) {
+        throw new Error(`HTTP error. Status ${response.status}`);
       }
+
+      return response.status;
     } catch (error) {
-      throw new Error("Job run failed.");
+      if (error) {
+        throw new Error(error);
+      } else {
+        throw new Error("Dataset upload failed!");
+      }
     }
   }
 
@@ -834,32 +864,24 @@ class Neuropacs {
         body: encryptedBody
       });
 
-      if (response.status === 200) {
-        // const text = await response.text();
-        const arrayBuffer = await response.arrayBuffer();
-        const byteData = Buffer.from(arrayBuffer);
-        console.log(byteData);
-
-        const decryptedFileData = await this.decryptAesCtr(
-          byteData,
-          this.aesKey,
-          "string"
-        );
-        return decryptedFileData;
-      } else {
-        const text = await response.text();
-
-        const decryptedFileData = await this.decryptAesCtr(
-          text,
-          this.aesKey,
-          "string"
-        );
-        console.log(decryptedFileData);
-        throw new Error();
+      if (!response.ok) {
+        throw new Error(`HTTP error. Status ${response.status}`);
       }
+
+      const text = await response.text();
+      const decryptedFileData = await this.decryptAesCtr(
+        text,
+        this.aesKey,
+        "string"
+      );
+
+      return decryptedFileData;
     } catch (error) {
-      console.log(error);
-      throw new Error("Result retrieval failed!");
+      if (error) {
+        throw new Error(error);
+      } else {
+        throw new Error("Result retrieval failed!");
+      }
     }
   }
 }

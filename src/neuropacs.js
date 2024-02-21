@@ -176,7 +176,7 @@ class Neuropacs {
         plaintext =
           typeof plaintext === "string" ? plaintext : JSON.stringify(plaintext);
       } catch (error) {
-        throw new Error("Plaintext must be a string or JSON!");
+        throw { neuropacsError: "Plaintext must be a string or JSON!" };
       }
 
       const publicKey = await this.getPublicKey();
@@ -228,15 +228,15 @@ class Neuropacs {
         const response = await fetch(`${this.serverUrl}/api/getPubKey/`);
 
         if (!response.ok) {
-          throw new Error(`HTTP error. Status ${response.status}.`);
+          throw { neuropacsError: `HTTP error. Status ${response.status}.` };
         }
 
         const json = await response.json();
         const pubKey = json.pub_key;
         return pubKey;
       } catch (error) {
-        if (error) {
-          throw new Error(error);
+        if (error.neuropacsError) {
+          throw new Error(error.neuropacsError);
         } else {
           throw new Error("Failed to retrieve the public key.");
         }
@@ -490,7 +490,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error. Status ${response.status}.`);
+        throw { neuropacsError: `HTTP error. Status ${response.status}.` };
       }
 
       const json = await response.json();
@@ -502,8 +502,8 @@ class Neuropacs {
         aesKey: this.aesKey
       };
     } catch (error) {
-      if (error) {
-        throw new Error(error);
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
       } else {
         throw new Error("Connection failed!");
       }
@@ -530,7 +530,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error. Status ${response.status}.`);
+        throw { neuropacsError: `HTTP error. Status ${response.status}.` };
       }
 
       const text = await response.text();
@@ -538,8 +538,8 @@ class Neuropacs {
       this.orderId = orderId;
       return orderId;
     } catch (error) {
-      if (error) {
-        throw new Error(error);
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
       } else {
         throw new Error("Job creation failed!");
       }
@@ -578,8 +578,8 @@ class Neuropacs {
 
       return 201;
     } catch (e) {
-      if (error) {
-        throw new Error(error);
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
       } else {
         throw new Error("Dataset upload failed!");
       }
@@ -615,7 +615,7 @@ class Neuropacs {
       const file = data instanceof File ? data : await this.readFile(data);
       filename = file.name;
     } else {
-      throw new Error("Unsupported data type!");
+      throw { neuropacsError: "Unsupported data type!" };
     }
 
     const form = {
@@ -666,7 +666,7 @@ class Neuropacs {
         "bytes"
       );
     } else {
-      throw new Error("Unsupported data type!");
+      throw { neuropacsError: "Unsupported data type!" };
     }
 
     const message = new Uint8Array([
@@ -706,7 +706,7 @@ class Neuropacs {
     // Check if the maximum wait time has been reached
     if (elapsed_time > maxAckWaitTime) {
       this.disconnectFromSocket();
-      throw new Error("Upload timeout!");
+      throw { neuropacsError: "Upload timeout!" };
     }
 
     if (!this.datasetUpload) {
@@ -756,13 +756,13 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error. Status ${response.status}`);
+        throw { neuropacsError: `HTTP error. Status ${response.status}` };
       }
 
       return response.status;
     } catch (error) {
-      if (error) {
-        throw new Error(error);
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
       } else {
         throw new Error("Dataset upload failed!");
       }
@@ -805,15 +805,19 @@ class Neuropacs {
         body: encryptedBody
       });
 
-      if (response.status === 200) {
-        const text = await response.text();
-        const json = await this.decryptAesCtr(text, this.aesKey, "JSON");
-        return json;
-      } else {
-        throw new Error();
+      if (!response.ok) {
+        throw { neuropacsError: `HTTP error. Status ${response.status}` };
       }
+
+      const text = await response.text();
+      const json = await this.decryptAesCtr(text, this.aesKey, "JSON");
+      return json;
     } catch (error) {
-      throw new Error("Status check failed.");
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
+      } else {
+        throw new Error("Status check failed.");
+      }
     }
   }
 
@@ -841,9 +845,9 @@ class Neuropacs {
       const validFormats = ["TXT", "XML", "JSON", "DCM", "PDF"];
 
       if (!validFormats.includes(format)) {
-        throw new Error(
-          `Invalid format! Valid formats include: "TXT", "JSON", "XML", "PDF", "DCM.`
-        );
+        throw {
+          neuropacsError: `Invalid format! Valid formats include: "TXT", "JSON", "XML", "PDF", "DCM.`
+        };
       }
 
       const body = {
@@ -865,7 +869,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error. Status ${response.status}`);
+        throw { neuropacsError: `HTTP error. Status ${response.status}` };
       }
 
       const text = await response.text();
@@ -877,8 +881,8 @@ class Neuropacs {
 
       return decryptedFileData;
     } catch (error) {
-      if (error) {
-        throw new Error(error);
+      if (error.neuropacsError) {
+        throw new Error(error.neuropacsError);
       } else {
         throw new Error("Result retrieval failed!");
       }

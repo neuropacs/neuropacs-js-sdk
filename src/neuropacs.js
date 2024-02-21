@@ -1,6 +1,6 @@
 /*!
  * NeuroPACS v1.0.0
- * (c) 2023 Kerrick Cavanaugh
+ * (c) 2024 Kerrick Cavanaugh
  * Released under the MIT License.
  */
 
@@ -228,7 +228,7 @@ class Neuropacs {
         const response = await fetch(`${this.serverUrl}/api/getPubKey/`);
 
         if (!response.ok) {
-          throw { neuropacsError: `HTTP error. Status ${response.status}.` };
+          throw { neuropacsError: `${response.text()}` };
         }
 
         const json = await response.json();
@@ -490,7 +490,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `HTTP error. Status ${response.status}.` };
+        throw { neuropacsError: `${response.text()}` };
       }
 
       const json = await response.json();
@@ -530,7 +530,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `HTTP error. Status ${response.status}.` };
+        throw { neuropacsError: `${response.text()}` };
       }
 
       const text = await response.text();
@@ -756,7 +756,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `HTTP error. Status ${response.status}` };
+        throw { neuropacsError: `${response.text()}` };
       }
 
       return response.status;
@@ -806,7 +806,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `HTTP error. Status ${response.status}` };
+        throw { neuropacsError: `${response.text()}` };
       }
 
       const text = await response.text();
@@ -869,7 +869,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `HTTP error. Status ${response.status}` };
+        throw { neuropacsError: `${response.text()}` };
       }
 
       const text = await response.text();

@@ -9,8 +9,9 @@ class Neuropacs {
    * Constructor
    * @param {String} apiKey API key for server
    * @param {String} serverUrl Server URL for an instance
+   * @param {String} client ClientID (default = "api")
    */
-  constructor(serverUrl, apiKey) {
+  constructor(serverUrl, apiKey, client) {
     /* PRIVATE METHODS (CLOSURES) */
     /**
      * Initialize SocketIO
@@ -448,6 +449,7 @@ class Neuropacs {
     this.serverUrl = serverUrl;
     this.aesKey = this.generateAesKey();
     this.orderId = "";
+    this.client = client;
     this.connectionId = "";
     this.ackRecieved = false;
     this.datasetUpload = false;
@@ -457,22 +459,23 @@ class Neuropacs {
    * Init method
    * @param {String} serverUrl URL of server
    * @param {String} apiKey API key
+   * @param {String} client ClientID (default = 'api')
+
    * @returns {Neuropacs} instance
    */
-  static init(serverUrl, apiKey) {
-    return new Neuropacs(serverUrl, apiKey);
+  static init(serverUrl, apiKey, client = "api") {
+    return new Neuropacs(serverUrl, apiKey, client);
   }
 
   /**
    * Create a connection with the server
-   * @param {String} apiKey Base64 API key.
-   * @param {String} aesKey Base64 AES key.
-   * @returns {String} Base64 string encrypted AES key.
+
+   * @returns {String} Base64 string encrypted AES key
    */
   async connect() {
     const headers = {
       "Content-Type": "text/plain",
-      client: "api"
+      Client: this.client
     };
 
     const body = {
@@ -521,7 +524,7 @@ class Neuropacs {
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
-        Client: "API"
+        Client: this.client
       };
 
       const response = await fetch(url, {
@@ -679,15 +682,15 @@ class Neuropacs {
     datasetId
       ? (headers = {
           "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
+          "Connection-Id": this.connectionId,
           "dataset-id": datasetId,
-          client: "API",
+          Client: this.client,
           "order-id": encryptedOrderId
         })
       : (headers = {
           "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
-          client: "API",
+          "Connection-Id": this.connectionId,
+          Client: this.client,
           "order-id": encryptedOrderId
         });
 
@@ -721,6 +724,7 @@ class Neuropacs {
    * @param {String} productId Product to be executed
    * @param {String} orderId Base64 order Id (optional)
    * @param {String} datasetId Base64 dataset Id (optional)
+
    * @returns {Number} Job run status code
    */
   async runJob(productId, orderId = null, datasetId = null) {
@@ -733,7 +737,7 @@ class Neuropacs {
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
-        Client: "API"
+        Client: this.client
       };
 
       const body = {
@@ -764,7 +768,7 @@ class Neuropacs {
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {
-        throw new Error("Dataset upload failed!");
+        throw new Error("Job run failed!");
       }
     }
   }
@@ -772,7 +776,7 @@ class Neuropacs {
   /**
    * Check job status
    * @param {String} orderId Base64 order_id (optional)
-   *
+  
    * @returns {Number} Job status message
    */
   async checkStatus(orderId = null) {
@@ -784,8 +788,8 @@ class Neuropacs {
       const url = `${this.serverUrl}/api/checkStatus/`;
       const headers = {
         "Content-Type": "text/plain",
-        "connection-id": this.connectionId,
-        client: "api"
+        "Connection-Id": this.connectionId,
+        Client: this.client
       };
 
       const body = {
@@ -823,10 +827,11 @@ class Neuropacs {
 
   /**
    * Get job results
-   * @param {String} format Base64 AES key.
-   * @param {String} orderId Base64 connection_id.
+   * @param {String} format Base64 AES key
+   * @param {String} orderId Base64 connection_id(optional)
    * @param {String} connectionId Format of file data
-   * @param {String} aesKey Base64 orderID.
+   * @param {String} aesKey Base64 orderID
+
    * @returns  AES encrypted file data in specified format
    */
   async getResults(format, orderId = null) {
@@ -839,7 +844,7 @@ class Neuropacs {
       const headers = {
         "Content-Type": "text/plain",
         "Connection-Id": this.connectionId,
-        Client: "api"
+        Client: this.client
       };
 
       const validFormats = ["TXT", "XML", "JSON", "DCM", "PDF"];

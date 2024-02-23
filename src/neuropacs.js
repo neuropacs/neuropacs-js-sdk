@@ -776,10 +776,11 @@ class Neuropacs {
   /**
    * Check job status
    * @param {String} orderId Base64 order_id (optional)
+   * @param {String} datasetId Base64 dataset_id (optional)
   
    * @returns {Number} Job status message
    */
-  async checkStatus(orderId = null) {
+  async checkStatus(orderId = null, datasetId = null) {
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -793,7 +794,8 @@ class Neuropacs {
       };
 
       const body = {
-        orderID: orderId
+        orderID: orderId,
+        datasetID: datasetId
       };
 
       const encryptedBody = await this.encryptAesCtr(
@@ -829,12 +831,11 @@ class Neuropacs {
    * Get job results
    * @param {String} format Base64 AES key
    * @param {String} orderId Base64 connection_id(optional)
-   * @param {String} connectionId Format of file data
-   * @param {String} aesKey Base64 orderID
+   * @param {String} datasetId Base64 dataset_id (optional)
 
    * @returns  AES encrypted file data in specified format
    */
-  async getResults(format, orderId = null) {
+  async getResults(format, orderId = null, datasetId = null) {
     if (orderId == null) {
       orderId = this.orderId;
     }
@@ -857,7 +858,8 @@ class Neuropacs {
 
       const body = {
         orderID: orderId,
-        format: format
+        format: format,
+        datasetID: datasetId
       };
 
       const encryptedBody = await this.encryptAesCtr(

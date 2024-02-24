@@ -112,7 +112,7 @@ class Neuropacs {
     /**
      * Close connection with socket
      */
-    this.disconnectFromSocket = () => {
+    this.disconnectFromSocket = async () => {
       this.socket.close(false);
       console.log("Disconnected from upload socket.");
     };
@@ -120,7 +120,7 @@ class Neuropacs {
     /**
      * Connect to socket
      */
-    this.connectToSocket = () => {
+    this.connectToSocket = async () => {
       this.socket.connect();
     };
 
@@ -584,7 +584,7 @@ class Neuropacs {
 
       await this.initSocketIO();
 
-      this.connectToSocket();
+      await this.connectToSocket();
 
       this.datasetUpload = true;
 
@@ -596,7 +596,7 @@ class Neuropacs {
         this.printProgressBar(i + 1, totalFiles);
       }
 
-      this.disconnectFromSocket();
+      await this.disconnectFromSocket();
 
       return 201;
     } catch (error) {
@@ -741,7 +741,7 @@ class Neuropacs {
     while (!this.ackReceived && elapsed_time < maxAckWaitTime) {
       // Check if the maximum wait time has been reached
       if (elapsed_time > maxAckWaitTime) {
-        this.disconnectFromSocket();
+        await this.disconnectFromSocket();
         throw { neuropacsError: "Upload timeout." };
       }
 

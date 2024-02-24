@@ -39,6 +39,14 @@ class Neuropacs {
             }
           });
 
+          this.socket.on("message", (data) => {
+            console.log(`Data recieved: ${data}`);
+          });
+
+          // this.socket.on("", (data) => {
+          //   console.log(`Data recieved: ${data}`);
+          // });
+
           this.socket.on("error", (error) => {
             throw { neuropacsError: "Socket error." };
           });

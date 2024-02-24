@@ -63,6 +63,20 @@ class Neuropacs {
       });
     };
 
+    this.waitForSocketConnection = () => {
+      return new Promise((resolve) => {
+        // Check if the socket is already connected
+        if (this.socket.connected) {
+          resolve(socket);
+        } else {
+          // Listen for the 'connect' event
+          this.socket.on("connect", () => {
+            resolve(socket);
+          });
+        }
+      });
+    };
+
     /**
      * Initialize SocketIO from source file
      */
@@ -145,12 +159,12 @@ class Neuropacs {
 
       this.socket.connect();
 
-      while (!this.connectedToSocket) {
-        continue;
-        // console.log("connecting to socket...");
-      }
+      // while (!this.connectedToSocket) {
+      //   continue;
+      //   // console.log("connecting to socket...");
+      // }
 
-      return true;
+      // return true;
     };
 
     /**
@@ -661,9 +675,13 @@ class Neuropacs {
       console.log("DATASET UPLOAD");
     }
 
-    if (!this.connectedToSocket) {
-      throw { neuropacsError: "Socket connection error." };
-    }
+    const connectedSocket = await awaitForSocketConnection();
+
+    console.log("socket connected successfully, uploading...");
+
+    // if (!this.connectedToSocket) {
+    //   throw { neuropacsError: "Socket connection error." };
+    // }
 
     let filename = "";
 

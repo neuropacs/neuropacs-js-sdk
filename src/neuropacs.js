@@ -717,7 +717,7 @@ class Neuropacs {
     let elapsed_time = 0;
 
     // Equivalent to the Python while loop
-    while (!ackReceived && elapsed_time < maxAckWaitTime) {
+    while (!this.ackReceived && elapsed_time < maxAckWaitTime) {
       // Check if the maximum wait time has been reached
       if (elapsed_time > maxAckWaitTime) {
         this.disconnectFromSocket();

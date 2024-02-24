@@ -29,6 +29,7 @@ class Neuropacs {
           });
 
           this.socket.on("ack", (data) => {
+            console.log(`ACK: ${data}`);
             if (data == "0") {
               console.log("ack recieved successfully");
               this.ackReceived = true;

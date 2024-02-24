@@ -24,18 +24,17 @@ class Neuropacs {
             transports: ["websocket"]
           });
 
-          this.socket.on("connect", () => {
-            // this.connectedToSocket = true;
-            console.log("Connected to upload socket!");
-          });
+          // this.socket.on("connect", () => {
+          //   // this.connectedToSocket = true;
+          //   console.log("Connected to upload socket!");
+          // });
 
-          this.socket.on("disconnect", () => {
-            // this.connectedToSocket = false;
-            console.log("Disconnected from upload socket!");
-          });
+          // this.socket.on("disconnect", () => {
+          //   // this.connectedToSocket = false;
+          //   console.log("Disconnected from upload socket!");
+          // });
 
           this.socket.on("ack", (data) => {
-            console.log(`ACK: ${data}`);
             if (data == "0") {
               this.ackReceived = true;
             } else {
@@ -49,7 +48,7 @@ class Neuropacs {
           // });
 
           this.socket.on("error", (error) => {
-            throw { neuropacsError: "Socket error." };
+            reject({ neuropacsError: "Socket error." });
           });
           resolve();
         } catch (e) {
@@ -88,18 +87,17 @@ class Neuropacs {
             transports: ["websocket"]
           });
 
-          this.socket.on("connect", () => {
-            // this.connectedToSocket = true;
-            console.log("Connected to upload socket!");
-          });
+          // this.socket.on("connect", () => {
+          //   // this.connectedToSocket = true;
+          //   console.log("Connected to upload socket!");
+          // });
 
-          this.socket.on("disconnect", () => {
-            // this.connectedToSocket = false;
-            console.log("Disconnected from upload socket!");
-          });
+          // this.socket.on("disconnect", () => {
+          //   // this.connectedToSocket = false;
+          //   console.log("Disconnected from upload socket!");
+          // });
 
           this.socket.on("ack", (data) => {
-            console.log(`ACK: ${data}`);
             if (data == "0") {
               // console.log("ack recieved successfully");
               this.ackReceived = true;
@@ -110,8 +108,7 @@ class Neuropacs {
           });
 
           this.socket.on("error", (error) => {
-            this.connectedToSocket = false;
-            console.error("Socket.IO error:", error);
+            reject({ neuropacsError: "Socket error." });
           });
           resolve();
         }
@@ -507,7 +504,6 @@ class Neuropacs {
     this.client = client;
     this.connectionId = "";
     this.ackRecieved = false;
-    this.connectedToSocket = false;
     this.datasetUpload = false;
   }
 
@@ -759,8 +755,6 @@ class Neuropacs {
           Client: this.client,
           "order-id": encryptedOrderId
         });
-
-    console.log(headers);
 
     this.socket.emit("file_data", { data: message, headers: headers });
 

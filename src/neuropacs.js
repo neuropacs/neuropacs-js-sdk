@@ -748,14 +748,14 @@ class Neuropacs {
     datasetId
       ? (headers = {
           "Content-Type": "application/octet-stream",
-          "connection-Id": this.connectionId,
+          "connection-id": this.connectionId,
           "dataset-id": datasetId,
           Client: this.client,
           "order-id": encryptedOrderId
         })
       : (headers = {
           "Content-Type": "application/octet-stream",
-          "connection-Id": this.connectionId,
+          "connection-id": this.connectionId,
           Client: this.client,
           "order-id": encryptedOrderId
         });

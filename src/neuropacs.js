@@ -25,7 +25,13 @@ class Neuropacs {
           });
 
           this.socket.on("connect", () => {
+            this.connectedToSocket = true;
             console.log("Connected to upload socket!");
+          });
+
+          this.socket.on("disconnect", () => {
+            this.connectedToSocket = false;
+            console.log("Disconnected from upload socket!");
           });
 
           this.socket.on("ack", (data) => {
@@ -76,7 +82,7 @@ class Neuropacs {
 
           this.socket.on("disconnect", () => {
             this.connectedToSocket = false;
-            console.log("Disconnected to upload socket!");
+            console.log("Disconnected from upload socket!");
           });
 
           this.socket.on("ack", (data) => {

@@ -899,11 +899,11 @@ class Neuropacs {
    * @returns  AES encrypted file data in specified format
    */
   async getResults(format, orderId = null, datasetId = null) {
-    if (orderId == null) {
-      orderId = this.orderId;
-    }
-
     try {
+      if (orderId == null) {
+        orderId = this.orderId;
+      }
+
       const url = `${this.serverUrl}/api/getResults/`;
       const headers = {
         "Content-Type": "text/plain",
@@ -951,6 +951,7 @@ class Neuropacs {
 
       return decryptedFileData;
     } catch (error) {
+      console.log(error);
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {

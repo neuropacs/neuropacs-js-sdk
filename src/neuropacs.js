@@ -586,6 +586,7 @@ class Neuropacs {
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {
+        console.log(error);
         throw new Error("Dataset upload failed!");
       }
     }

@@ -586,9 +586,13 @@ class Neuropacs {
 
       await this.connectToSocket();
 
+      console.log("Connected to socket");
+
       this.datasetUpload = true;
 
       const totalFiles = dataset.length;
+
+      console.log("STARTING UPLOAD");
 
       for (let i = 0; i < totalFiles; i++) {
         const curData = dataset[i];

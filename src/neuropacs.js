@@ -136,7 +136,6 @@ class Neuropacs {
      */
     this.disconnectFromSocket = async () => {
       this.socket.close(false);
-      console.log("Disconnected from upload socket.");
     };
 
     /**
@@ -663,20 +662,14 @@ class Neuropacs {
     }
 
     if (!this.datasetUpload) {
-      console.log("SINGULAR UPLOAD");
+      // console.log("SINGULAR UPLOAD");
       await this.initSocketIO();
       this.connectToSocket();
     } else {
-      console.log("DATASET UPLOAD");
+      // console.log("DATASET UPLOAD");
     }
 
-    const connectedSocket = await this.waitForSocketConnection();
-
-    console.log("socket connected successfully, uploading...");
-
-    // if (!this.connectedToSocket) {
-    //   throw { neuropacsError: "Socket connection error." };
-    // }
+    await this.waitForSocketConnection();
 
     let filename = "";
 
@@ -694,15 +687,11 @@ class Neuropacs {
       throw { neuropacsError: "Unsupported data type!" };
     }
 
-    console.log(`Filename: ${filename}`);
-
     const form = {
       "Content-Disposition": "form-data",
       filename: filename
       // name: "test123"
     };
-
-    console.log(form);
 
     const BOUNDARY = "neuropacs----------";
     const DELIM = ";";
@@ -749,7 +738,6 @@ class Neuropacs {
       throw { neuropacsError: "Unsupported data type!" };
     }
 
-    console.log("GENERATING MESSAGE");
     const message = new Uint8Array([
       ...headerBytes,
       ...encryptedBinaryData,
@@ -772,7 +760,7 @@ class Neuropacs {
           "order-id": encryptedOrderId
         });
 
-    console.log("EMITTING ->>>");
+    console.log(headers);
 
     this.socket.emit("file_data", { data: message, headers: headers });
 
@@ -789,7 +777,6 @@ class Neuropacs {
         throw { neuropacsError: "Upload timeout." };
       }
 
-      console.log("waiting for ack...");
       elapsed_time = (Date.now() - startTime) / 1000; // Convert to seconds
       await new Promise((resolve) => setTimeout(resolve, 100));
     }

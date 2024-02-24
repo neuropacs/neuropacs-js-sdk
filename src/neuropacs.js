@@ -30,14 +30,16 @@ class Neuropacs {
 
           this.socket.on("ack", (data) => {
             if (data == "0") {
+              console.log("ack recieved successfully");
               this.ackReceived = true;
             } else {
               this.disconnectFromSocket();
+              throw { neuropacsError: "Upload failed." };
             }
           });
 
           this.socket.on("error", (error) => {
-            console.error("Socket.IO error:", error);
+            throw { neuropacsError: "Socket error." };
           });
           resolve();
         } catch (e) {
@@ -602,11 +604,12 @@ class Neuropacs {
       orderId = this.orderId;
     }
 
-    this.ackReceived = false;
-
     if (!this.datasetUpload) {
+      console.log("SINGULAR UPLOAD");
       await this.initSocketIO();
       this.connectToSocket();
+    } else {
+      console.log("DATASET UPLOAD");
     }
 
     let filename = "";
@@ -616,16 +619,24 @@ class Neuropacs {
     } else if (data instanceof File) {
       // Assuming 'data' is a File object or a string representing a file path
       const file = data instanceof File ? data : await this.readFile(data);
-      filename = file.name;
+      if (file.name) {
+        filename = file.name;
+      } else {
+        filename = this.generateFilename();
+      }
     } else {
       throw { neuropacsError: "Unsupported data type!" };
     }
 
+    console.log(`Filename: ${filename}`);
+
     const form = {
       "Content-Disposition": "form-data",
-      filename: filename,
-      name: "test123"
+      filename: filename
+      // name: "test123"
     };
+
+    console.log(form);
 
     const BOUNDARY = "neuropacs----------";
     const DELIM = ";";
@@ -672,6 +683,7 @@ class Neuropacs {
       throw { neuropacsError: "Unsupported data type!" };
     }
 
+    console.log("GENERATING MESSAGE");
     const message = new Uint8Array([
       ...headerBytes,
       ...encryptedBinaryData,
@@ -694,22 +706,26 @@ class Neuropacs {
           "order-id": encryptedOrderId
         });
 
+    console.log("EMITTING ->>>");
+
     this.socket.emit("file_data", { data: message, headers: headers });
 
     const maxAckWaitTime = 10; // 10 seconds
     const startTime = Date.now();
+    this.ackReceived = false; //ack indicator
     let elapsed_time = 0;
 
     // Equivalent to the Python while loop
-    while (!this.ackReceived && elapsed_time < maxAckWaitTime) {
+    while (!ackReceived && elapsed_time < maxAckWaitTime) {
+      // Check if the maximum wait time has been reached
+      if (elapsed_time > maxAckWaitTime) {
+        this.disconnectFromSocket();
+        throw { neuropacsError: "Upload timeout." };
+      }
+
+      console.log("waiting for ack...");
       elapsed_time = (Date.now() - startTime) / 1000; // Convert to seconds
       await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-
-    // Check if the maximum wait time has been reached
-    if (elapsed_time > maxAckWaitTime) {
-      this.disconnectFromSocket();
-      throw { neuropacsError: "Upload timeout!" };
     }
 
     if (!this.datasetUpload) {

@@ -67,11 +67,11 @@ class Neuropacs {
       return new Promise((resolve) => {
         // Check if the socket is already connected
         if (this.socket.connected) {
-          resolve(socket);
+          resolve(this.socket);
         } else {
           // Listen for the 'connect' event
           this.socket.on("connect", () => {
-            resolve(socket);
+            resolve(this.socket);
           });
         }
       });

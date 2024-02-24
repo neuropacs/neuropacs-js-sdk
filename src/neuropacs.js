@@ -145,10 +145,11 @@ class Neuropacs {
 
       this.socket.connect();
 
-      while (!this.connectedToSocket) {
-        console.log("connecting to socket...");
-      }
-      return true;
+      // while (!this.connectedToSocket) {
+      //   console.log("connecting to socket...");
+      // }
+
+      // return true;
     };
 
     /**

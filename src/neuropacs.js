@@ -25,28 +25,23 @@ class Neuropacs {
           });
 
           this.socket.on("connect", () => {
-            this.connectedToSocket = true;
+            // this.connectedToSocket = true;
             console.log("Connected to upload socket!");
           });
 
           this.socket.on("disconnect", () => {
-            this.connectedToSocket = false;
+            // this.connectedToSocket = false;
             console.log("Disconnected from upload socket!");
           });
 
           this.socket.on("ack", (data) => {
             console.log(`ACK: ${data}`);
             if (data == "0") {
-              console.log("ack recieved successfully");
               this.ackReceived = true;
             } else {
               this.disconnectFromSocket();
               throw { neuropacsError: "Upload failed." };
             }
-          });
-
-          this.socket.on("message", (data) => {
-            console.log(`Data recieved: ${data}`);
           });
 
           // this.socket.on("", (data) => {
@@ -63,6 +58,10 @@ class Neuropacs {
       });
     };
 
+    /**
+     * Wait for socket to be connected successfully
+     * @returns Promise
+     */
     this.waitForSocketConnection = () => {
       return new Promise((resolve) => {
         // Check if the socket is already connected
@@ -90,28 +89,24 @@ class Neuropacs {
           });
 
           this.socket.on("connect", () => {
-            this.connectedToSocket = true;
+            // this.connectedToSocket = true;
             console.log("Connected to upload socket!");
           });
 
           this.socket.on("disconnect", () => {
-            this.connectedToSocket = false;
+            // this.connectedToSocket = false;
             console.log("Disconnected from upload socket!");
           });
 
           this.socket.on("ack", (data) => {
             console.log(`ACK: ${data}`);
             if (data == "0") {
-              console.log("ack recieved successfully");
+              // console.log("ack recieved successfully");
               this.ackReceived = true;
             } else {
               this.disconnectFromSocket();
               throw { neuropacsError: "Upload failed." };
             }
-          });
-
-          this.socket.on("message", (data) => {
-            console.log(`Data recieved: ${data}`);
           });
 
           this.socket.on("error", (error) => {

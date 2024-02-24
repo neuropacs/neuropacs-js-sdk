@@ -70,7 +70,13 @@ class Neuropacs {
           });
 
           this.socket.on("connect", () => {
+            this.connectedToSocket = true;
             console.log("Connected to upload socket!");
+          });
+
+          this.socket.on("disconnect", () => {
+            this.connectedToSocket = false;
+            console.log("Disconnected to upload socket!");
           });
 
           this.socket.on("ack", (data) => {
@@ -82,6 +88,7 @@ class Neuropacs {
           });
 
           this.socket.on("error", (error) => {
+            this.connectedToSocket = false;
             console.error("Socket.IO error:", error);
           });
           resolve();
@@ -463,6 +470,7 @@ class Neuropacs {
     this.client = client;
     this.connectionId = "";
     this.ackRecieved = false;
+    this.connectedToSocket = false;
     this.datasetUpload = false;
   }
 
@@ -620,6 +628,10 @@ class Neuropacs {
       this.connectToSocket();
     } else {
       console.log("DATASET UPLOAD");
+    }
+
+    if (!this.connectedToSocket) {
+      throw { neuropacsError: "Socket connection error." };
     }
 
     let filename = "";

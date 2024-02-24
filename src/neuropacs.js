@@ -281,7 +281,7 @@ class Neuropacs {
         const response = await fetch(`${this.serverUrl}/api/getPubKey/`);
 
         if (!response.ok) {
-          throw { neuropacsError: `${response.text()}` };
+          throw { neuropacsError: `${await response.text()}` };
         }
 
         const json = await response.json();
@@ -545,7 +545,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `${response.text()}` };
+        throw { neuropacsError: `${await response.text()}` };
       }
 
       const json = await response.json();
@@ -585,7 +585,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `${response.text()}` };
+        throw { neuropacsError: `${await response.text()}` };
       }
 
       const text = await response.text();
@@ -823,7 +823,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `${response.text()}` };
+        throw { neuropacsError: `${await response.text()}` };
       }
 
       return response.status;
@@ -875,7 +875,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `${response.text()}` };
+        throw { neuropacsError: `${await response.text()}` };
       }
 
       const text = await response.text();
@@ -939,7 +939,7 @@ class Neuropacs {
       });
 
       if (!response.ok) {
-        throw { neuropacsError: `${response.text()}` };
+        throw { neuropacsError: `${await response.text()}` };
       }
 
       const text = await response.text();

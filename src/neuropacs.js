@@ -138,6 +138,11 @@ class Neuropacs {
       // });
 
       this.socket.connect();
+
+      while (!this.connectedToSocket) {
+        console.log("connecting to socket...");
+      }
+      return true;
     };
 
     /**
@@ -601,8 +606,6 @@ class Neuropacs {
       await this.initSocketIO();
 
       await this.connectToSocket();
-
-      console.log("Connected to socket");
 
       this.datasetUpload = true;
 

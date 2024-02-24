@@ -35,11 +35,12 @@ class Neuropacs {
           // });
 
           this.socket.on("ack", (data) => {
-            if (data == "0") {
-              this.ackReceived = true;
-            } else {
+            if (data == "1") {
               this.disconnectFromSocket();
               throw { neuropacsError: "Upload failed." };
+            } else {
+              this.ackDatasetID = data;
+              this.ackReceived = true;
             }
           });
 
@@ -98,12 +99,12 @@ class Neuropacs {
           // });
 
           this.socket.on("ack", (data) => {
-            if (data == "0") {
-              // console.log("ack recieved successfully");
-              this.ackReceived = true;
-            } else {
+            if (data == "1") {
               this.disconnectFromSocket();
               throw { neuropacsError: "Upload failed." };
+            } else {
+              this.ackDatasetID = data;
+              this.ackReceived = true;
             }
           });
 
@@ -502,6 +503,7 @@ class Neuropacs {
     this.aesKey = this.generateAesKey();
     this.orderId = "";
     this.client = client;
+    this.ackDatasetID = "";
     this.connectionId = "";
     this.ackRecieved = false;
     this.datasetUpload = false;
@@ -631,7 +633,7 @@ class Neuropacs {
 
       await this.disconnectFromSocket();
 
-      return 201;
+      return this.ackDatasetID;
     } catch (error) {
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);

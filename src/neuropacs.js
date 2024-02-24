@@ -565,9 +565,9 @@ class Neuropacs {
 
       await this.initSocketIO();
 
-      this.datasetUpload = true;
-
       this.connectToSocket();
+
+      this.datasetUpload = true;
 
       const totalFiles = dataset.length;
 
@@ -580,7 +580,7 @@ class Neuropacs {
       this.disconnectFromSocket();
 
       return 201;
-    } catch (e) {
+    } catch (error) {
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {

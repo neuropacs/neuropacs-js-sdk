@@ -623,8 +623,6 @@ class Neuropacs {
 
       const totalFiles = dataset.length;
 
-      console.log("STARTING UPLOAD");
-
       for (let i = 0; i < totalFiles; i++) {
         const curData = dataset[i];
         await this.upload(curData, orderId);
@@ -638,7 +636,6 @@ class Neuropacs {
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {
-        console.log(error);
         throw new Error("Dataset upload failed!");
       }
     }
@@ -951,7 +948,6 @@ class Neuropacs {
 
       return decryptedFileData;
     } catch (error) {
-      console.log(error);
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {

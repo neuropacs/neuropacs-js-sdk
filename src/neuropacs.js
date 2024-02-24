@@ -80,11 +80,18 @@ class Neuropacs {
           });
 
           this.socket.on("ack", (data) => {
+            console.log(`ACK: ${data}`);
             if (data == "0") {
+              console.log("ack recieved successfully");
               this.ackReceived = true;
             } else {
               this.disconnectFromSocket();
+              throw { neuropacsError: "Upload failed." };
             }
+          });
+
+          this.socket.on("message", (data) => {
+            console.log(`Data recieved: ${data}`);
           });
 
           this.socket.on("error", (error) => {
@@ -124,6 +131,7 @@ class Neuropacs {
       return new Promise((resolve, reject) => {
         this.socket.connect((error) => {
           if (error) {
+            console.log(error);
             reject(error);
           } else {
             console.log("Socket connected!");

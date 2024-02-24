@@ -675,7 +675,7 @@ class Neuropacs {
       console.log("DATASET UPLOAD");
     }
 
-    const connectedSocket = await this.awaitForSocketConnection();
+    const connectedSocket = await this.waitForSocketConnection();
 
     console.log("socket connected successfully, uploading...");
 

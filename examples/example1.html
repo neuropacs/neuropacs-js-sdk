@@ -25,39 +25,40 @@
           const conn = await npcs.connect();
           console.log(conn);
 
-          // // CREATE A NEW JOB
-          // const order = await npcs.newJob();
-          // console.log(order);
+          // CREATE A NEW JOB
+          const order = await npcs.newJob();
+          console.log(order);
 
-          // // UPLOAD A FILE/DATASET
-          // const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
-          // const file1 = new File([blobData1], "example1.txt", {
-          //   type: "text/plain"
-          // });
-          // const blobData2 = new Blob(["Hello, world!"], { type: "text/plain" });
-          // const file2 = new File([blobData2], "example2.txt", {
-          //   type: "text/plain"
-          // });
-          // const blobData3 = new Blob(["Hello, world!"], { type: "text/plain" });
-          // const file3 = new File([blobData3], "example3.txt", {
-          //   type: "text/plain"
-          // });
+          // UPLOAD A FILE/DATASET
+          const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file1 = new File([blobData1], "example1.txt", {
+            type: "text/plain"
+          });
+          const blobData2 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file2 = new File([blobData2], "example2.txt", {
+            type: "text/plain"
+          });
+          const blobData3 = new Blob(["Hello, world!"], { type: "text/plain" });
+          const file3 = new File([blobData3], "example3.txt", {
+            type: "text/plain"
+          });
 
-          // const dataset = [file1, file2, file3];
+          const dataset = [file1, file2, file3];
 
-          // const uploadStatus = await npcs.uploadDataset(dataset);
+          const datasetID = await npcs.uploadDataset(dataset);
+          console.log(datasetID);
 
-          // // START A JOB
-          // const job = await npcs.runJob(productId);
-          // console.log(job);
+          // START A JOB
+          const job = await npcs.runJob(productId);
+          console.log(job);
 
-          // CHECK STATUS
-          const status = await npcs.checkStatus("TEST");
-          console.log(status);
+          // // CHECK STATUS
+          // const status = await npcs.checkStatus("TEST");
+          // console.log(status);
 
-          // GET RESULTS
-          const results = await npcs.getResults(format, "TEST");
-          console.log(results);
+          // // GET RESULTS
+          // const results = await npcs.getResults(format, "TEST");
+          // console.log(results);
         } catch (e) {
           console.log(e);
         }

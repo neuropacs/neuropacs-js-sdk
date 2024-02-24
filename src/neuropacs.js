@@ -129,15 +129,21 @@ class Neuropacs {
      */
     this.connectToSocket = async () => {
       return new Promise((resolve, reject) => {
-        this.socket.connect((error) => {
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            console.log("Socket connected!");
-            resolve();
-          }
-        });
+        try {
+          this.socket.connect();
+          resolve();
+        } catch (e) {
+          reject();
+        }
+        // this.socket.connect((error) => {
+        //   if (error) {
+        //     console.log(error);
+        //     reject(error);
+        //   } else {
+        //     console.log("Socket connected!");
+        //     resolve();
+        //   }
+        // });
       });
 
       // this.socket.connect();

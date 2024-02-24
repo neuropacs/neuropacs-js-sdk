@@ -23,11 +23,9 @@
 
           // CONNECT TO NEUROPACS
           const conn = await npcs.connect();
-          console.log(conn);
 
           // CREATE A NEW JOB
-          const order = await npcs.newJob();
-          console.log(order);
+          const orderID = await npcs.newJob();
 
           // UPLOAD A FILE/DATASET
           const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
@@ -46,19 +44,15 @@
           const dataset = [file1, file2, file3];
 
           const datasetID = await npcs.uploadDataset(dataset);
-          console.log(datasetID);
 
           // START A JOB
           const job = await npcs.runJob(productId);
-          console.log(job);
 
-          // // CHECK STATUS
-          // const status = await npcs.checkStatus("TEST");
-          // console.log(status);
+          // CHECK STATUS
+          const status = await npcs.checkStatus(order);
 
-          // // GET RESULTS
-          // const results = await npcs.getResults(format, "TEST");
-          // console.log(results);
+          // GET RESULTS
+          const results = await npcs.getResults(format, order);
         } catch (e) {
           console.log(e);
         }

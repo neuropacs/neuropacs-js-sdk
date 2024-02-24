@@ -776,6 +776,7 @@ class Neuropacs {
 
     if (!this.datasetUpload) {
       this.disconnectFromSocket();
+      return this.ackDatasetID;
     }
 
     return 201; // Upload success status code

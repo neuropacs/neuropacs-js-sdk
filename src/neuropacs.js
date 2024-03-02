@@ -9,9 +9,10 @@ class Neuropacs {
    * Constructor
    * @param {String} apiKey API key for server
    * @param {String} serverUrl Server URL for an instance
+   * @param {String} socketUrl Socket URL for an instance
    * @param {String} client ClientID (default = "api")
    */
-  constructor(serverUrl, apiKey, client) {
+  constructor(serverUrl, socketUrl, apiKey, client) {
     /* PRIVATE METHODS (CLOSURES) */
     /**
      * Initialize SocketIO
@@ -19,7 +20,7 @@ class Neuropacs {
     this.initSocketIO = () => {
       return new Promise(async (resolve) => {
         try {
-          this.socket = io(this.serverUrl, {
+          this.socket = io(this.socketUrl, {
             autoConnect: false,
             transports: ["websocket"]
           });
@@ -83,7 +84,7 @@ class Neuropacs {
       this.loadSocketIOCdn(
         "https://neuropacs.com/js/lib/socket.io.min.js",
         () => {
-          this.socket = io(this.serverUrl, {
+          this.socket = io(this.socketUrl, {
             autoConnect: false,
             transports: ["websocket"]
           });
@@ -755,7 +756,9 @@ class Neuropacs {
           "order-id": encryptedOrderId
         });
 
-    this.socket.emit("file_data", { data: message, headers: headers });
+    const actionPayload = { action: "upload", data: message, headers: headers };
+
+    this.socket.emit("action", actionPayload);
 
     const maxAckWaitTime = 10; // 10 seconds
     const startTime = Date.now();

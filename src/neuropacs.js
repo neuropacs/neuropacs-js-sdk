@@ -14,150 +14,127 @@ class Neuropacs {
    */
   constructor(serverUrl, socketUrl, apiKey, client) {
     /* PRIVATE METHODS (CLOSURES) */
+
     /**
-     * Initialize SocketIO
+     * Initialize WebSocket connection
      */
-    this.initSocketIO = () => {
-      return new Promise(async (resolve) => {
+    this.initWebSocket = () => {
+      return new Promise((resolve, reject) => {
         try {
-          this.socket = io(this.socketUrl, {
-            autoConnect: false,
-            transports: ["websocket"]
+          this.socket = new WebSocket(this.socketUrl);
+
+          this.socket.addEventListener("open", (event) => {
+            // console.log("Connected to upload socket!");
+            resolve();
           });
 
-          // this.socket.on("connect", () => {
-          //   // this.connectedToSocket = true;
-          //   console.log("Connected to upload socket!");
-          // });
-
-          // this.socket.on("disconnect", () => {
-          //   // this.connectedToSocket = false;
-          //   console.log("Disconnected from upload socket!");
-          // });
-
-          this.socket.on("ack", (data) => {
-            if (data == "1") {
-              this.disconnectFromSocket();
-              throw { neuropacsError: "Upload failed." };
-            } else {
-              this.ackDatasetID = data;
-              this.ackReceived = true;
+          this.socket.addEventListener("message", async (event) => {
+            try {
+              // Call the receiveSocketData function
+              const responseData = await this.receiveSocketData();
+              // Handle the response data as needed
+              if (responseData.ack == "1") {
+                this.disconnectFromSocket();
+                reject({ neuropacsError: "Upload failed." });
+              } else {
+                this.ackDatasetID = responseData.ack;
+              }
+            } catch (error) {
+              // Handle any errors that occur during data reception
+              reject({ neuropacsError: "Error receiving socket data:", error });
             }
           });
 
-          // this.socket.on("", (data) => {
-          //   console.log(`Data recieved: ${data}`);
-          // });
+          this.socket.addEventListener("close", (event) => {
+            // console.log("Disconnected from upload socket!");
+          });
 
-          this.socket.on("error", (error) => {
+          this.socket.addEventListener("error", (error) => {
+            // console.log("Socket error:", error);
             reject({ neuropacsError: "Socket error." });
           });
-          resolve();
         } catch (e) {
-          this.initSocketIOFromCDN(resolve);
+          reject(e);
         }
       });
     };
 
     /**
-     * Wait for socket to be connected successfully
-     * @returns Promise
+     * Send socket data
      */
-    this.waitForSocketConnection = () => {
-      return new Promise((resolve) => {
-        // Check if the socket is already connected
-        if (this.socket.connected) {
-          resolve(this.socket);
-        } else {
-          // Listen for the 'connect' event
-          this.socket.on("connect", () => {
-            resolve(this.socket);
-          });
-        }
-      });
-    };
-
-    /**
-     * Initialize SocketIO from source file
-     */
-    this.initSocketIOFromCDN = (resolve) => {
-      this.loadSocketIOCdn(
-        "https://neuropacs.com/js/lib/socket.io.min.js",
-        () => {
-          this.socket = io(this.socketUrl, {
-            autoConnect: false,
-            transports: ["websocket"]
-          });
-
-          // this.socket.on("connect", () => {
-          //   // this.connectedToSocket = true;
-          //   console.log("Connected to upload socket!");
-          // });
-
-          // this.socket.on("disconnect", () => {
-          //   // this.connectedToSocket = false;
-          //   console.log("Disconnected from upload socket!");
-          // });
-
-          this.socket.on("ack", (data) => {
-            if (data == "1") {
-              this.disconnectFromSocket();
-              throw { neuropacsError: "Upload failed." };
-            } else {
-              this.ackDatasetID = data;
-              this.ackReceived = true;
-            }
-          });
-
-          this.socket.on("error", (error) => {
-            reject({ neuropacsError: "Socket error." });
-          });
+    this.sendSocketData = async (data) => {
+      return new Promise((resolve, reject) => {
+        if (this.socket.readyState === WebSocket.OPEN) {
+          this.socket.send(JSON.stringify(data));
           resolve();
+        } else {
+          reject(new Error("WebSocket is not open. Data not sent."));
         }
-      );
+      });
+    };
+
+    this.receiveSocketData = async () => {
+      let successResponseReceived = false;
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          if (!successResponseReceived) {
+            reject(new Error("Upload timeout."));
+          }
+        }, 10000); // Timeout after 10 seconds
+
+        const messageListener = (event) => {
+          clearTimeout(timeout);
+          try {
+            const json_response = JSON.parse(event.data);
+            if (json_response.ack === "1") {
+              reject(new Error("Upload failed."));
+            } else {
+              successResponseReceived = true;
+              resolve(json_response);
+            }
+          } catch (error) {
+            reject(error);
+          }
+          this.socket.removeEventListener("message", messageListener);
+        };
+
+        this.socket.addEventListener("message", messageListener);
+      });
+    };
+
+    // this.receiveSocketAck = (message) => {
+    //   try {
+    //     const data = JSON.parse(message);
+
+    //     // Check if this message is a response to a previous request
+    //     if (data.messageId && this.pendingMessages[data.messageId]) {
+    //       this.pendingMessages[data.messageId].resolve(data);
+    //       delete this.pendingMessages[data.messageId];
+    //     }
+
+    //     return data;
+    //   } catch (error) {
+    //     console.error("Error parsing incoming message:", error);
+    //   }
+    // };
+
+    /**
+     * Disconnect from WebSocket server
+     */
+    this.disconnectFromSocket = () => {
+      if (this.socket) {
+        this.socket.close();
+      }
     };
 
     /**
-     * Load socketio CDN
-     * @param {String} src Source file of socket.io.min.js
-     * @param {Function} callback
+     * Connect to WebSocket server
      */
-    this.loadSocketIOCdn = (src, callback) => {
-      var script = document.createElement("script");
-      script.type = "text/javascript";
-      script.src = src;
-      script.onload = callback;
-      document.head.appendChild(script);
-    };
-
-    /**
-     * Close connection with socket
-     */
-    this.disconnectFromSocket = async () => {
-      this.socket.close(false);
-    };
-
-    /**
-     * Connect to socket
-     */
-    this.connectToSocket = async () => {
-      // return new Promise((resolve, reject) => {
-      //   try {
-      //     this.socket.connect();
-      //     resolve();
-      //   } catch (e) {
-      //     reject();
-      //   }
-      // });
-
-      this.socket.connect();
-
-      // while (!this.connectedToSocket) {
-      //   continue;
-      //   // console.log("connecting to socket...");
-      // }
-
-      // return true;
+    this.connectToSocket = () => {
+      if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
+        return this.initSocketIO();
+      }
+      return Promise.resolve();
     };
 
     /**
@@ -207,6 +184,16 @@ class Neuropacs {
         result += charset.charAt(randomIndex);
       }
       return result;
+    };
+
+    /**
+     * Genereate unique ID for socket messages
+     */
+    this.generateUniqueId = () => {
+      return (
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15)
+      );
     };
 
     /**
@@ -501,12 +488,15 @@ class Neuropacs {
      */
     this.apiKey = apiKey;
     this.serverUrl = serverUrl;
+    this.socketUrl = socketUrl;
     this.aesKey = this.generateAesKey();
     this.orderId = "";
     this.client = client;
+    this.socket = null;
     this.ackDatasetID = "";
     this.connectionId = "";
     this.ackRecieved = false;
+    this.pendingMessages = {}; // Store pending messages awaiting response
     this.datasetUpload = false;
   }
 
@@ -618,9 +608,7 @@ class Neuropacs {
         orderId = this.orderID;
       }
 
-      await this.initSocketIO();
-
-      await this.connectToSocket();
+      await this.initWebSocket();
 
       this.datasetUpload = true;
 
@@ -658,14 +646,8 @@ class Neuropacs {
     }
 
     if (!this.datasetUpload) {
-      // console.log("SINGULAR UPLOAD");
-      await this.initSocketIO();
-      this.connectToSocket();
-    } else {
-      // console.log("DATASET UPLOAD");
+      await this.initWebSocket();
     }
-
-    await this.waitForSocketConnection();
 
     let filename = "";
 
@@ -756,26 +738,15 @@ class Neuropacs {
           "order-id": encryptedOrderId
         });
 
-    const actionPayload = { action: "upload", data: message, headers: headers };
+    const actionPayload = {
+      action: "upload",
+      data: this.uint8ArrayToBase64(message),
+      headers: headers
+    };
 
-    this.socket.emit("action", actionPayload);
+    await this.sendSocketData(actionPayload);
 
-    const maxAckWaitTime = 10; // 10 seconds
-    const startTime = Date.now();
-    this.ackReceived = false; //ack indicator
-    let elapsed_time = 0;
-
-    // Equivalent to the Python while loop
-    while (!this.ackReceived && elapsed_time < maxAckWaitTime) {
-      // Check if the maximum wait time has been reached
-      if (elapsed_time > maxAckWaitTime) {
-        await this.disconnectFromSocket();
-        throw { neuropacsError: "Upload timeout." };
-      }
-
-      elapsed_time = (Date.now() - startTime) / 1000; // Convert to seconds
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
+    await this.receiveSocketData();
 
     if (!this.datasetUpload) {
       this.disconnectFromSocket();
@@ -783,6 +754,14 @@ class Neuropacs {
     }
 
     return 201; // Upload success status code
+  }
+
+  uint8ArrayToBase64(uint8Array) {
+    let binary = "";
+    uint8Array.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
   }
 
   /**

@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
 
     <!-- NeuroPACS SDK -->
-    <script src="https://neuropacs.com/js/src/neuropacs.js"></script>
+    <!-- <script src="https://neuropacs.com/js/src/neuropacs.js"></script> -->
+    <script src="../src/neuropacs.js"></script>
 
     <title>NeuroPACS SDK Example</title>
   </head>
@@ -12,20 +13,22 @@
     <script>
       async function main() {
         const apiKey = "m0ig54amrl87awtwlizcuji2bxacjm";
-        const serverUrl =
-          "http://ec2-18-218-48-101.us-east-2.compute.amazonaws.com:5000";
+        const serverUrl = "http://localhost:3000";
+        const socketUrl = "ws://localhost:5000";
         const productId = "PD/MSA/PSP-v1.0";
         const format = "XML";
 
         try {
           // INITIALIZE NEUROPACS SDK
-          const npcs = Neuropacs.init(serverUrl, apiKey);
+          const npcs = Neuropacs.init(serverUrl, socketUrl, apiKey);
 
           // CONNECT TO NEUROPACS
           const conn = await npcs.connect();
+          console.log(conn);
 
           // CREATE A NEW JOB
           const orderID = await npcs.newJob();
+          console.log(orderID);
 
           // UPLOAD A FILE/DATASET
           const blobData1 = new Blob(["Hello, world!"], { type: "text/plain" });
@@ -45,14 +48,16 @@
 
           const datasetID = await npcs.uploadDataset(dataset);
 
+          console.log(datasetID);
+
           // START A JOB
-          const job = await npcs.runJob(productId);
+          // const job = await npcs.runJob(productId);
 
-          // CHECK STATUS
-          const status = await npcs.checkStatus(order);
+          // // CHECK STATUS
+          // const status = await npcs.checkStatus(order);
 
-          // GET RESULTS
-          const results = await npcs.getResults(format, order);
+          // // GET RESULTS
+          // const results = await npcs.getResults(format, order);
         } catch (e) {
           console.log(e);
         }

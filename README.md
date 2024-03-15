@@ -1,6 +1,6 @@
 [![Unit Tests](https://github.com/neuropacs/neuropacs-js-api/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/neuropacs/neuropacs-js-api/actions/workflows/ci.yaml)
 
-# NeuroPACS JS API v1.0
+# neuropacs JS API v1.0
 
 Connect to neuropacs diagnostic capabilities with our JavaScript API.
 

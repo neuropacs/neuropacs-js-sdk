@@ -1,14 +1,14 @@
-[![Unit Tests](https://github.com/neuropacs/neuropacs-js-sdk/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/neuropacs/neuropacs-js-sdk/actions/workflows/ci.yaml)
+[![Unit Tests](https://github.com/neuropacs/neuropacs-js-api/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/neuropacs/neuropacs-js-api/actions/workflows/ci.yaml)
 
-# NeuroPACS JS SDK v1.0
+# NeuroPACS JS API v1.0
 
-Connect to NeuroPACS diagnostic capabilities with our JavaScript SDK.
+Connect to NeuroPACS diagnostic capabilities with our JavaScript API.
 
 ## Getting Started
 
 ### Dependencies
 
-- SocketIO SDK: [Download Here](https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js)
+- SocketIO: [Download Here](https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js)
 
 ### Installation
 
@@ -21,7 +21,7 @@ There are several bundles available:
 
 ### Usage
 
-<!-- #### Option 1: Download SDK
+<!-- #### Option 1: Download API files
 
 - Download prefered bundle for NeuroPACS
 - Download minified bundle for SocketIO (socket.io.min.js)
@@ -37,7 +37,7 @@ project-root/
 | |-- socket.io.min.js
 ```
 
-- Reference SDK
+- Reference API files
 
 ```
 <script >
@@ -51,7 +51,7 @@ project-root/
 
 ```
 <head>
-<!-- NEUROPACS SDK -->
+<!-- NEUROPACS API -->
 <script src="https://neuropacs.com/js/src/neuropacs.min.js"></script>
 </head>
 <script>
@@ -62,7 +62,7 @@ project-root/
         const predictionFormat = "XML";
 
         try {
-          // INITIALIZE NEUROPACS SDK
+          // INITIALIZE NEUROPACS API
           const npcs = Neuropacs.init(apiKey, serverUrl);
 
           // CONNECT TO NEUROPACS

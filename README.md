@@ -2,7 +2,7 @@
 
 # NeuroPACS JS API v1.0
 
-Connect to NeuroPACS diagnostic capabilities with our JavaScript API.
+Connect to neuropacs diagnostic capabilities with our JavaScript API.
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ There are several bundles available:
 
 <!-- #### Option 1: Download API files
 
-- Download prefered bundle for NeuroPACS
+- Download prefered bundle for neuropacs
 - Download minified bundle for SocketIO (socket.io.min.js)
 - Include in project
   - Your project strucutre should look something like this:

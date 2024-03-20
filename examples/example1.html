@@ -13,14 +13,16 @@
     <script>
       async function main() {
         const apiKey = "m0ig54amrl87awtwlizcuji2bxacjm";
-        const serverUrl = "http://localhost:3000";
-        const socketUrl = "ws://localhost:5000";
+        const serverUrl =
+          "https://sl3tkzp9ve.execute-api.us-east-2.amazonaws.com/dev";
+        // const socketUrl = "ws://localhost:5000";
         const productId = "PD/MSA/PSP-v1.0";
+        const client = "API";
         const format = "XML";
 
         try {
           // INITIALIZE NEUROPACS SDK
-          const npcs = Neuropacs.init(serverUrl, socketUrl, apiKey);
+          const npcs = Neuropacs.init(serverUrl, apiKey);
 
           // CONNECT TO NEUROPACS
           const conn = await npcs.connect();

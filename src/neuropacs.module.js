@@ -8,82 +8,22 @@
 const io = require("../lib/socket.io.min.js");
 
 class Neuropacs {
-  constructor(t, e, r, a) {
-    (this.initWebSocket = () =>
-      new Promise((t, e) => {
-        try {
-          (this.socket = new WebSocket(this.socketUrl)),
-            this.socket.addEventListener("open", (e) => {
-              t();
-            }),
-            this.socket.addEventListener("message", async (t) => {
-              try {
-                let r = await this.receiveSocketData();
-                "1" == r.ack
-                  ? (this.disconnectFromSocket(),
-                    e({ neuropacsError: "Upload failed." }))
-                  : (this.ackDatasetID = r.ack);
-              } catch (a) {
-                e({ neuropacsError: "Error receiving socket data:", error: a });
-              }
-            }),
-            this.socket.addEventListener("close", (t) => {}),
-            this.socket.addEventListener("error", (t) => {
-              e({ neuropacsError: "Socket error." });
-            });
-        } catch (r) {
-          e(r);
-        }
+  constructor(t, e, r = "api") {
+    (this.readFileAsArrayBuffer = async (t) =>
+      new Promise((e, r) => {
+        let a = new FileReader();
+        (a.onload = () => e(a.result)), (a.onerror = r), a.readAsArrayBuffer(t);
       })),
-      (this.sendSocketData = async (t) =>
-        new Promise((e, r) => {
-          this.socket.readyState === WebSocket.OPEN
-            ? (this.socket.send(JSON.stringify(t)), e())
-            : r(Error("WebSocket is not open. Data not sent."));
-        })),
-      (this.receiveSocketData = async () => {
-        let t = !1;
-        return new Promise((e, r) => {
-          let a = setTimeout(() => {
-              t || r(Error("Upload timeout."));
-            }, 1e4),
-            i = (n) => {
-              clearTimeout(a);
-              try {
-                let s = JSON.parse(n.data);
-                "1" === s.ack ? r(Error("Upload failed.")) : ((t = !0), e(s));
-              } catch (o) {
-                r(o);
-              }
-              this.socket.removeEventListener("message", i);
-            };
-          this.socket.addEventListener("message", i);
-        });
-      }),
-      (this.disconnectFromSocket = () => {
-        this.socket && this.socket.close();
-      }),
-      (this.connectToSocket = () =>
-        this.socket && this.socket.readyState !== WebSocket.CLOSED
-          ? Promise.resolve()
-          : this.initSocketIO()),
-      (this.readFileAsArrayBuffer = async (t) =>
-        new Promise((e, r) => {
-          let a = new FileReader();
-          (a.onload = () => e(a.result)),
-            (a.onerror = r),
-            a.readAsArrayBuffer(t);
-        })),
       (this.printProgressBar = (t, e, r = 50) => {
         let a = (t / e) * 100,
-          i =
+          n =
             Array(Math.floor((t / e) * r))
               .fill("=")
               .join("") +
             Array(r - Math.floor((t / e) * r))
               .fill(".")
               .join("");
-        console.clear(), console.log(`[${i}] ${a.toFixed(2)}%`);
+        console.clear(), console.log(`[${n}] ${a.toFixed(2)}%`);
       }),
       (this.generateFilename = () => {
         let t =
@@ -112,11 +52,11 @@ class Neuropacs {
         }
         let r = await this.getPublicKey(),
           a = r.substring(26, r.length - 24 - 1),
-          i = window.atob(a),
-          n = this.str2ab(i),
+          n = window.atob(a),
+          i = this.str2ab(n),
           s = await crypto.subtle.importKey(
             "spki",
-            n,
+            i,
             { name: "RSA-OAEP", hash: "SHA-256" },
             !0,
             ["encrypt"]
@@ -126,8 +66,8 @@ class Neuropacs {
             s,
             new TextEncoder().encode(t)
           ),
-          c = this.arrayBufferToBase64(o);
-        return c;
+          l = this.arrayBufferToBase64(o);
+        return l;
       }),
       (this.getPublicKey = async () => {
         try {
@@ -144,7 +84,7 @@ class Neuropacs {
       (this.str2ab = (t) => {
         let e = new ArrayBuffer(t.length),
           r = new Uint8Array(e);
-        for (let a = 0, i = t.length; a < i; a++) r[a] = t.charCodeAt(a);
+        for (let a = 0, n = t.length; a < n; a++) r[a] = t.charCodeAt(a);
         return e;
       }),
       (this.arrayBufferToBase64 = (t) => {
@@ -152,14 +92,14 @@ class Neuropacs {
         return btoa(String.fromCharCode.apply(null, e));
       }),
       (this.encryptAesCtr = async (t, e, r, a) => {
-        let i;
+        let n;
         try {
           if ("string" == r && "string" == typeof t)
-            i = new TextEncoder().encode(t);
+            n = new TextEncoder().encode(t);
           else if ("JSON" == r) {
-            let n = JSON.stringify(t);
-            i = new TextEncoder().encode(n);
-          } else if ("Uint8Array" == r && t instanceof Uint8Array) i = t;
+            let i = JSON.stringify(t);
+            n = new TextEncoder().encode(i);
+          } else if ("Uint8Array" == r && t instanceof Uint8Array) n = t;
           else throw Error("Invalid plaintext format!");
         } catch (s) {
           if (error) throw Error(error);
@@ -171,8 +111,8 @@ class Neuropacs {
                 .split("")
                 .map((t) => t.charCodeAt(0))
             ),
-            c = await this.pad(i, 16),
-            l = crypto.getRandomValues(new Uint8Array(16)),
+            l = await this.pad(n, 16),
+            c = crypto.getRandomValues(new Uint8Array(16)),
             h = await crypto.subtle.importKey(
               "raw",
               o,
@@ -181,12 +121,12 @@ class Neuropacs {
               ["encrypt"]
             ),
             d = await crypto.subtle.encrypt(
-              { name: "AES-CTR", counter: l, length: 128 },
+              { name: "AES-CTR", counter: c, length: 128 },
               h,
-              c
+              l
             ),
-            p = new Uint8Array(l.length + d.byteLength);
-          if ((p.set(l), p.set(new Uint8Array(d), l.length), "string" === a))
+            p = new Uint8Array(c.length + d.byteLength);
+          if ((p.set(c), p.set(new Uint8Array(d), c.length), "string" === a))
             return btoa(String.fromCharCode.apply(null, p));
           if ("bytes" === a) return p;
         } catch (u) {
@@ -206,13 +146,13 @@ class Neuropacs {
                 .split("")
                 .map((t) => t.charCodeAt(0))
             ),
-            i = new Uint8Array(
+            n = new Uint8Array(
               atob(t)
                 .split("")
                 .map((t) => t.charCodeAt(0))
             ),
-            n = i.slice(0, 16),
-            s = i.slice(16),
+            i = n.slice(0, 16),
+            s = n.slice(16),
             o = await crypto.subtle.importKey(
               "raw",
               a,
@@ -220,14 +160,14 @@ class Neuropacs {
               !1,
               ["decrypt"]
             ),
-            c = await crypto.subtle.decrypt(
-              { name: "AES-CTR", counter: n, length: 128 },
+            l = await crypto.subtle.decrypt(
+              { name: "AES-CTR", counter: i, length: 128 },
               o,
               s
             ),
-            l = new TextDecoder().decode(c);
-          if ("JSON" === r) return (l = l.trim()), JSON.parse(l);
-          if ("string" === r) return l;
+            c = new TextDecoder().decode(l);
+          if ("JSON" === r) return (c = c.trim()), JSON.parse(c);
+          if ("string" === r) return c;
         } catch (h) {
           if (h) throw Error(h);
           throw Error("AES decryption failed!");
@@ -238,22 +178,18 @@ class Neuropacs {
           e = t.getUTCFullYear(),
           r = String(t.getUTCMonth() + 1).padStart(2, "0"),
           a = String(t.getUTCDate()).padStart(2, "0"),
-          i = String(t.getUTCHours()).padStart(2, "0"),
-          n = String(t.getUTCMinutes()).padStart(2, "0"),
+          n = String(t.getUTCHours()).padStart(2, "0"),
+          i = String(t.getUTCMinutes()).padStart(2, "0"),
           s = String(t.getUTCSeconds()).padStart(2, "0"),
-          o = `${e}-${r}-${a} ${i}:${n}:${s} UTC`;
+          o = `${e}-${r}-${a} ${n}:${i}:${s} UTC`;
         return o;
       }),
-      (this.apiKey = r),
+      (this.apiKey = e),
       (this.serverUrl = t),
-      (this.socketUrl = e),
       (this.aesKey = this.generateAesKey()),
       (this.orderId = ""),
-      (this.client = a),
-      (this.socket = null),
-      (this.ackDatasetID = ""),
+      (this.client = r),
       (this.connectionId = ""),
-      (this.ackRecieved = !1),
       (this.pendingMessages = {}),
       (this.datasetUpload = !1);
   }
@@ -271,13 +207,13 @@ class Neuropacs {
           body: r
         });
       if (!a.ok) throw { neuropacsError: `${await a.text()}` };
-      let i = await a.json(),
-        n = i.connectionID;
+      let n = await a.json(),
+        i = n.connectionID;
       return (
-        (this.connectionId = n),
+        (this.connectionId = i),
         {
           timestamp: this.getTimeDateString(),
-          connectionId: n,
+          connectionId: i,
           aesKey: this.aesKey
         }
       );
@@ -297,84 +233,78 @@ class Neuropacs {
         r = await fetch(t, { method: "POST", headers: e });
       if (!r.ok) throw { neuropacsError: `${await r.text()}` };
       let a = await r.text(),
-        i = await this.decryptAesCtr(a, this.aesKey, "string");
-      return (this.orderId = i), i;
-    } catch (n) {
-      if (n.neuropacsError) throw Error(n.neuropacsError);
+        n = await this.decryptAesCtr(a, this.aesKey, "string");
+      return (this.orderId = n), n;
+    } catch (i) {
+      if (i.neuropacsError) throw Error(i.neuropacsError);
       throw Error("Job creation failed!");
     }
   }
   async uploadDataset(t, e = null) {
     try {
-      null == e && (e = this.orderID),
-        await this.initWebSocket(),
-        (this.datasetUpload = !0);
-      let r = t.length;
-      for (let a = 0; a < r; a++) {
-        let i = t[a];
-        await this.upload(i, e), this.printProgressBar(a + 1, r);
+      null == e && (e = this.orderID);
+      let r = this.generateUniqueId(); //!Change this
+      this.datasetUpload = !0;
+      let a = t.length;
+      for (let n = 0; n < a; n++) {
+        let i = t[n];
+        await this.upload(i, r, e), this.printProgressBar(n + 1, a);
       }
-      return await this.disconnectFromSocket(), this.ackDatasetID;
-    } catch (n) {
-      if (n.neuropacsError) throw Error(n.neuropacsError);
+      return r;
+    } catch (s) {
+      if ((console.log(s), s.neuropacsError)) throw Error(s.neuropacsError);
       throw Error("Dataset upload failed!");
     }
   }
-  async upload(t, e = null, r = null) {
-    null == e && (e = this.orderId),
-      this.datasetUpload || (await this.initWebSocket());
+  async upload(t, e, r = null) {
+    null == r && (r = this.orderId);
     let a = "";
     if (t instanceof Uint8Array) a = this.generateFilename();
     else if (t instanceof File) {
-      let i = t instanceof File ? t : await this.readFile(t);
-      a = i.name ? i.name : this.generateFilename();
+      let n = t instanceof File ? t : await this.readFile(t);
+      a = n.name ? n.name : this.generateFilename();
     } else throw { neuropacsError: "Unsupported data type!" };
-    let n = { "Content-Disposition": "form-data", filename: a },
-      s = "neuropacs----------",
-      o = "\r\n",
-      c = `--${s}${o}`,
-      l = `--${s}--${o}`,
-      h = c;
-    for (let [d, p] of Object.entries(n)) h += `${d}: ${p};`;
-    (h += o),
-      (h += "Content-Type: application/octet-stream"),
-      (h += `${o}${o}`);
-    let u = new TextEncoder().encode(h),
-      y = await this.encryptAesCtr(e, this.aesKey, "string", "string"),
-      w;
+    let i = await this.encryptAesCtr(r, this.aesKey, "string", "string"),
+      s = {
+        "Content-Type": "application/octet-stream",
+        "connection-id": this.connectionId,
+        client: this.client,
+        "order-id": i,
+        filename: a,
+        "dataset-id": e
+      },
+      o = await fetch(`${this.serverUrl}/api/uploadRequest/`, { headers: s });
+    if (!o.ok) throw { neuropacsError: `${await o.text()}` };
+    let l = await o.text(),
+      c = await this.decryptAesCtr(l, this.aesKey, "JSON"),
+      h = c.presignedURL,
+      d = { "Content-Disposition": "form-data", filename: a },
+      p = "neuropacs----------",
+      u = "\r\n",
+      y = `--${p}${u}`,
+      w = `--${p}--${u}`,
+      f = y;
+    for (let [g, C] of Object.entries(d)) f += `${g}: ${C};`;
+    (f += u),
+      (f += "Content-Type: application/octet-stream"),
+      (f += `${u}${u}`);
+    let m = new TextEncoder().encode(f),
+      A;
     if (t instanceof Uint8Array)
-      w = await this.encryptAesCtr(t, this.aesKey, "Uint8Array", "bytes");
+      A = await this.encryptAesCtr(t, this.aesKey, "Uint8Array", "bytes");
     else if (t instanceof File) {
-      let f = await this.readFileAsArrayBuffer(t);
-      w = await this.encryptAesCtr(
-        new Uint8Array(f),
+      let E = await this.readFileAsArrayBuffer(t);
+      A = await this.encryptAesCtr(
+        new Uint8Array(E),
         this.aesKey,
         "Uint8Array",
         "bytes"
       );
     } else throw { neuropacsError: "Unsupported data type!" };
-    let g = new Uint8Array([...u, ...w, ...new TextEncoder().encode(l)]),
-      C = {};
-    C = r
-      ? {
-          "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
-          "dataset-id": r,
-          Client: this.client,
-          "order-id": y
-        }
-      : {
-          "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
-          Client: this.client,
-          "order-id": y
-        };
-    let k = { action: "upload", data: this.uint8ArrayToBase64(g), headers: C };
-    return (await this.sendSocketData(k),
-    await this.receiveSocketData(),
-    this.datasetUpload)
-      ? 201
-      : (this.disconnectFromSocket(), this.ackDatasetID);
+    let S = new Uint8Array([...m, ...A, ...new TextEncoder().encode(w)]),
+      b = await fetch(h, { method: "PUT", body: S });
+    if (!b.ok) throw { neuropacsError: `${await b.text()}` };
+    return 201;
   }
   uint8ArrayToBase64(t) {
     let e = "";
@@ -389,18 +319,18 @@ class Neuropacs {
     null == e && (e = this.orderId);
     try {
       let a = `${this.serverUrl}/api/runJob/`,
-        i = {
+        n = {
           "Content-Type": "text/plain",
           "Connection-Id": this.connectionId,
           Client: this.client
         },
-        n = { orderID: e, productID: t, datasetID: r },
-        s = await this.encryptAesCtr(n, this.aesKey, "JSON", "string"),
-        o = await fetch(a, { method: "POST", headers: i, body: s });
+        i = { orderID: e, productID: t, datasetID: r },
+        s = await this.encryptAesCtr(i, this.aesKey, "JSON", "string"),
+        o = await fetch(a, { method: "POST", headers: n, body: s });
       if (!o.ok) throw { neuropacsError: `${await o.text()}` };
       return o.status;
-    } catch (c) {
-      if (c.neuropacsError) throw Error(c.neuropacsError);
+    } catch (l) {
+      if (l.neuropacsError) throw Error(l.neuropacsError);
       throw Error("Job run failed!");
     }
   }
@@ -413,15 +343,15 @@ class Neuropacs {
           "Connection-Id": this.connectionId,
           Client: this.client
         },
-        i = { orderID: t, datasetID: e },
-        n = await this.encryptAesCtr(i, this.aesKey, "JSON", "string"),
-        s = await fetch(r, { method: "POST", headers: a, body: n });
+        n = { orderID: t, datasetID: e },
+        i = await this.encryptAesCtr(n, this.aesKey, "JSON", "string"),
+        s = await fetch(r, { method: "POST", headers: a, body: i });
       if (!s.ok) throw { neuropacsError: `${await s.text()}` };
       let o = await s.text(),
-        c = await this.decryptAesCtr(o, this.aesKey, "JSON");
-      return c;
-    } catch (l) {
-      if (l.neuropacsError) throw Error(l.neuropacsError);
+        l = await this.decryptAesCtr(o, this.aesKey, "JSON");
+      return l;
+    } catch (c) {
+      if (c.neuropacsError) throw Error(c.neuropacsError);
       throw Error("Status check failed.");
     }
   }
@@ -429,7 +359,7 @@ class Neuropacs {
     try {
       null == e && (e = this.orderId);
       let a = `${this.serverUrl}/api/getResults/`,
-        i = {
+        n = {
           "Content-Type": "text/plain",
           "Connection-Id": this.connectionId,
           Client: this.client
@@ -439,13 +369,13 @@ class Neuropacs {
           neuropacsError:
             'Invalid format! Valid formats include: "TXT", "JSON", "XML", "PDF", "DCM.'
         };
-      let n = { orderID: e, format: t, datasetID: r },
-        s = await this.encryptAesCtr(n, this.aesKey, "JSON", "string"),
-        o = await fetch(a, { method: "POST", headers: i, body: s });
+      let i = { orderID: e, format: t, datasetID: r },
+        s = await this.encryptAesCtr(i, this.aesKey, "JSON", "string"),
+        o = await fetch(a, { method: "POST", headers: n, body: s });
       if (!o.ok) throw { neuropacsError: `${await o.text()}` };
-      let c = await o.text(),
-        l = await this.decryptAesCtr(c, this.aesKey, "string");
-      return l;
+      let l = await o.text(),
+        c = await this.decryptAesCtr(l, this.aesKey, "string");
+      return c;
     } catch (h) {
       if (h.neuropacsError) throw Error(h.neuropacsError);
       throw Error("Result retrieval failed!");

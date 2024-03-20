@@ -9,133 +9,10 @@ class Neuropacs {
    * Constructor
    * @param {String} apiKey API key for server
    * @param {String} serverUrl Server URL for an instance
-   * @param {String} socketUrl Socket URL for an instance
    * @param {String} client ClientID (default = "api")
    */
-  constructor(serverUrl, socketUrl, apiKey, client) {
+  constructor(serverUrl, apiKey, client = "api") {
     /* PRIVATE METHODS (CLOSURES) */
-
-    /**
-     * Initialize WebSocket connection
-     */
-    this.initWebSocket = () => {
-      return new Promise((resolve, reject) => {
-        try {
-          this.socket = new WebSocket(this.socketUrl);
-
-          this.socket.addEventListener("open", (event) => {
-            // console.log("Connected to upload socket!");
-            resolve();
-          });
-
-          this.socket.addEventListener("message", async (event) => {
-            try {
-              // Call the receiveSocketData function
-              const responseData = await this.receiveSocketData();
-              // Handle the response data as needed
-              if (responseData.ack == "1") {
-                this.disconnectFromSocket();
-                reject({ neuropacsError: "Upload failed." });
-              } else {
-                this.ackDatasetID = responseData.ack;
-              }
-            } catch (error) {
-              // Handle any errors that occur during data reception
-              reject({ neuropacsError: "Error receiving socket data:", error });
-            }
-          });
-
-          this.socket.addEventListener("close", (event) => {
-            // console.log("Disconnected from upload socket!");
-          });
-
-          this.socket.addEventListener("error", (error) => {
-            // console.log("Socket error:", error);
-            reject({ neuropacsError: "Socket error." });
-          });
-        } catch (e) {
-          reject(e);
-        }
-      });
-    };
-
-    /**
-     * Send socket data
-     */
-    this.sendSocketData = async (data) => {
-      return new Promise((resolve, reject) => {
-        if (this.socket.readyState === WebSocket.OPEN) {
-          this.socket.send(JSON.stringify(data));
-          resolve();
-        } else {
-          reject(new Error("WebSocket is not open. Data not sent."));
-        }
-      });
-    };
-
-    this.receiveSocketData = async () => {
-      let successResponseReceived = false;
-      return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          if (!successResponseReceived) {
-            reject(new Error("Upload timeout."));
-          }
-        }, 10000); // Timeout after 10 seconds
-
-        const messageListener = (event) => {
-          clearTimeout(timeout);
-          try {
-            const json_response = JSON.parse(event.data);
-            if (json_response.ack === "1") {
-              reject(new Error("Upload failed."));
-            } else {
-              successResponseReceived = true;
-              resolve(json_response);
-            }
-          } catch (error) {
-            reject(error);
-          }
-          this.socket.removeEventListener("message", messageListener);
-        };
-
-        this.socket.addEventListener("message", messageListener);
-      });
-    };
-
-    // this.receiveSocketAck = (message) => {
-    //   try {
-    //     const data = JSON.parse(message);
-
-    //     // Check if this message is a response to a previous request
-    //     if (data.messageId && this.pendingMessages[data.messageId]) {
-    //       this.pendingMessages[data.messageId].resolve(data);
-    //       delete this.pendingMessages[data.messageId];
-    //     }
-
-    //     return data;
-    //   } catch (error) {
-    //     console.error("Error parsing incoming message:", error);
-    //   }
-    // };
-
-    /**
-     * Disconnect from WebSocket server
-     */
-    this.disconnectFromSocket = () => {
-      if (this.socket) {
-        this.socket.close();
-      }
-    };
-
-    /**
-     * Connect to WebSocket server
-     */
-    this.connectToSocket = () => {
-      if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
-        return this.initSocketIO();
-      }
-      return Promise.resolve();
-    };
 
     /**
      * Read in a file as an ArrayBuffer Object
@@ -488,14 +365,10 @@ class Neuropacs {
      */
     this.apiKey = apiKey;
     this.serverUrl = serverUrl;
-    this.socketUrl = socketUrl;
     this.aesKey = this.generateAesKey();
     this.orderId = "";
     this.client = client;
-    this.socket = null;
-    this.ackDatasetID = "";
     this.connectionId = "";
-    this.ackRecieved = false;
     this.pendingMessages = {}; // Store pending messages awaiting response
     this.datasetUpload = false;
   }
@@ -608,7 +481,7 @@ class Neuropacs {
         orderId = this.orderID;
       }
 
-      await this.initWebSocket();
+      const datasetId = this.generateUniqueId(); //!Change this
 
       this.datasetUpload = true;
 
@@ -616,14 +489,13 @@ class Neuropacs {
 
       for (let i = 0; i < totalFiles; i++) {
         const curData = dataset[i];
-        await this.upload(curData, orderId);
+        await this.upload(curData, datasetId, orderId);
         this.printProgressBar(i + 1, totalFiles);
       }
 
-      await this.disconnectFromSocket();
-
-      return this.ackDatasetID;
+      return datasetId;
     } catch (error) {
+      console.log(error);
       if (error.neuropacsError) {
         throw new Error(error.neuropacsError);
       } else {
@@ -635,18 +507,14 @@ class Neuropacs {
   /**
    * Upload a file to the socket
    * @param {Uint8Array/File} data Data to be uploaded
+   * @param {String} datasetId Base64 datasetId
    * @param {String} orderId Base64 orderId (optional)
-   * @param {String} datasetId Base64 datasetId (optional)
    *
    * @returns {Number} Upload status code.
    */
-  async upload(data, orderId = null, datasetId = null) {
+  async upload(data, datasetId, orderId = null) {
     if (orderId == null) {
       orderId = this.orderId;
-    }
-
-    if (!this.datasetUpload) {
-      await this.initWebSocket();
     }
 
     let filename = "";
@@ -664,6 +532,39 @@ class Neuropacs {
     } else {
       throw { neuropacsError: "Unsupported data type!" };
     }
+
+    //encrypt order ID
+    const encryptedOrderId = await this.encryptAesCtr(
+      orderId,
+      this.aesKey,
+      "string",
+      "string"
+    );
+
+    //headers for upload request
+    const uploadParamHeaders = {
+      "Content-Type": "application/octet-stream",
+      "connection-id": this.connectionId,
+      client: this.client,
+      "order-id": encryptedOrderId,
+      filename: filename,
+      "dataset-id": datasetId
+    };
+
+    // get s3 upload params
+    const s3Res = await fetch(`${this.serverUrl}/api/uploadRequest/`, {
+      headers: uploadParamHeaders
+    });
+
+    if (!s3Res.ok) {
+      throw { neuropacsError: `${await s3Res.text()}` };
+    }
+
+    const s3ResText = await s3Res.text();
+
+    const s3Json = await this.decryptAesCtr(s3ResText, this.aesKey, "JSON");
+
+    const presigned_url = s3Json["presignedURL"];
 
     const form = {
       "Content-Disposition": "form-data",
@@ -688,13 +589,6 @@ class Neuropacs {
 
     const headerBytes = new TextEncoder().encode(header);
 
-    const encryptedOrderId = await this.encryptAesCtr(
-      orderId,
-      this.aesKey,
-      "string",
-      "string"
-    );
-
     let encryptedBinaryData;
 
     if (data instanceof Uint8Array) {
@@ -716,41 +610,21 @@ class Neuropacs {
       throw { neuropacsError: "Unsupported data type!" };
     }
 
+    // construct message
     const message = new Uint8Array([
       ...headerBytes,
       ...encryptedBinaryData,
       ...new TextEncoder().encode(END)
     ]);
 
-    let headers = {};
-    datasetId
-      ? (headers = {
-          "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
-          "dataset-id": datasetId,
-          Client: this.client,
-          "order-id": encryptedOrderId
-        })
-      : (headers = {
-          "Content-Type": "application/octet-stream",
-          "connection-id": this.connectionId,
-          Client: this.client,
-          "order-id": encryptedOrderId
-        });
+    //upload to s3 with presigned url
+    const upload_res = await fetch(presigned_url, {
+      method: "PUT",
+      body: message
+    });
 
-    const actionPayload = {
-      action: "upload",
-      data: this.uint8ArrayToBase64(message),
-      headers: headers
-    };
-
-    await this.sendSocketData(actionPayload);
-
-    await this.receiveSocketData();
-
-    if (!this.datasetUpload) {
-      this.disconnectFromSocket();
-      return this.ackDatasetID;
+    if (!upload_res.ok) {
+      throw { neuropacsError: `${await upload_res.text()}` };
     }
 
     return 201; // Upload success status code
